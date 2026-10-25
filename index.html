@@ -250,7 +250,7 @@ function addMonster(i,wait){
 }
 function startGame(){
   G={score:0,lives:3,stage:1,correct:0,combo:0,items:[],monsters:[],pops:[],mistakes:[],
-     q:null,lastZh:'',invincible:0,fright:0,freeze:1.4,banner:'¡Listo!',bannerT:1.4,time:0,flash:0};
+     q:null,lastZh:'',invincible:0,fright:0,freeze:1.4,banner:'¡Listo!',bannerT:1.4,time:0,flash:0,chomp:0};
   P=makeEnt(PLAYER_START[0],PLAYER_START[1],5.2);P.want=null;P.face=Math.PI;
   const n=monstersForStage(1);
   for(let i=0;i<n;i++)addMonster(i,1.5+i*3);
@@ -313,7 +313,7 @@ function eatItem(it){
   if(it.kind==='ok'){
     G.combo++;
     const pts=100+Math.min(G.combo-1,9)*10;
-    G.score+=pts;G.correct++;
+    G.score+=pts;G.correct++;G.chomp=.3;
     pop(it.x,it.y,'+'+pts,'#6b8e6b');sfx.ok();
     setFb(`✓ ${G.q.zh}  ${G.q.py}  =  ${G.q.es}`,'ok');
     if(G.correct%3===0&&!G.items.some(i=>i.kind==='power'))addItem({zh:'力',py:'lì'},'power');
@@ -365,6 +365,7 @@ function update(dt){
   G.time+=dt;
   if(G.bannerT>0)G.bannerT-=dt;
   if(G.flash>0)G.flash-=dt;
+  if(G.chomp>0)G.chomp-=dt;
   G.pops.forEach(p=>{p.t-=dt*1.1;p.y-=dt*24;});
   G.pops=G.pops.filter(p=>p.t>0);
   if(G.freeze>0){G.freeze-=dt;return;}
@@ -455,24 +456,48 @@ const INK='#3b3935';
 function pol(cx,cy,r,deg){const a=deg*Math.PI/180;return [cx+Math.cos(a)*r,cy+Math.sin(a)*r];}
 function f1(n){return Math.round(n*10)/10;}
 
-// 小籠包（朝右；嘴巴由程式用扇形裁切）
-function svgBun(){
+// 小籠包：側面、正面、背面（腳與嘴巴各有兩個畫面）
+const BUN_BODY='M7 66 Q7 87 50 88 Q93 87 93 66 Q93 48 66 40 Q58 36 56 30 L44 30 Q42 36 34 40 Q7 48 7 66 Z';
+function bunWrap(inner){
+  return SVG_H+`<g stroke="${INK}" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round">
+  <defs><radialGradient id="s" cx="38%" cy="30%" r="80%"><stop offset="0" stop-color="#fffbf1"/><stop offset=".6" stop-color="#f4e8cc"/><stop offset="1" stop-color="#e0cc9c"/></radialGradient></defs>
+  <ellipse cx="50" cy="93" rx="38" ry="3.4" fill="#000" opacity=".08" stroke="none"/>${inner}</g></svg>`;
+}
+function bunCommon(feet){
   let pl='';
-  for(let i=0;i<18;i++){
-    const d=i*20+6,a=pol(50,50,10,d),m=pol(50,50,21,d+15),b=pol(50,50,31,d+8);
-    pl+=`<path d="M${f1(a[0])} ${f1(a[1])} Q${f1(m[0])} ${f1(m[1])} ${f1(b[0])} ${f1(b[1])}"/>`;
+  for(let k=-4;k<=4;k++){
+    const sx=50+k*2.4,ex=50+k*9.6,ey=45+Math.abs(k)*3.3,cx=50+k*5.5;
+    pl+=`<path d="M${sx} 31 Q${cx} 38 ${ex} ${ey}"/>`;
   }
-  return SVG_H+`<defs>
-  <radialGradient id="g" cx="42%" cy="38%" r="70%"><stop offset="0" stop-color="#fffbf1"/><stop offset=".65" stop-color="#f4e8cc"/><stop offset="1" stop-color="#e3d0a3"/></radialGradient>
-  </defs>
-  <circle cx="50" cy="50" r="51" fill="url(#g)"/>
-  <circle cx="50" cy="50" r="38" fill="none" stroke="#e3d0a3" stroke-width="1.4" opacity=".7"/>
-  <g fill="none" stroke="#bfa774" stroke-width="1.7" stroke-linecap="round">${pl}</g>
-  <circle cx="50" cy="50" r="6.5" fill="#f6ecd2" stroke="#bfa774" stroke-width="1.7"/>
-  <path d="M16 34 Q24 16 44 11" stroke="#fff" stroke-opacity=".75" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-  <ellipse cx="75" cy="60" rx="6.5" ry="4.2" fill="#e8a28d" opacity=".55"/>
-  <circle cx="77" cy="32" r="5" fill="${INK}"/><circle cx="78.6" cy="30.2" r="1.6" fill="#fff"/>
-  </svg>`;
+  const foot=feet.map(f=>`<ellipse cx="${f[0]}" cy="${f[1]}" rx="9" ry="4.6" fill="#e9dcb9"/>`).join('');
+  const steam=`<g fill="none" stroke="#c9b88f" stroke-width="2.4" opacity=".8"><path d="M40 16 Q36 8 42 3"/><path d="M58 14 Q64 7 58 1"/></g>`;
+  return {
+    under:foot+steam+`<path d="${BUN_BODY}" fill="url(#s)"/>`,
+    over:`<g fill="none" stroke="#bfa774" stroke-width="1.8">${pl}</g>
+      <path d="M43 31 Q41 19 50 17 Q59 19 57 31 Z" fill="#f6ecd2"/><path d="M47 26 Q50 22 53 26" fill="none" stroke="#bfa774" stroke-width="1.6"/>
+      <path d="M14 56 Q20 46 32 42" stroke="#fff" stroke-opacity=".75" stroke-width="3.2" fill="none"/>`
+  };
+}
+function svgBunSide(open){
+  const c=bunCommon(open?[[35,89],[65,89]]:[[41,88],[58,90]]);
+  const mouth=open
+    ?`<path d="M79 62 Q96 58 94 71 Q92 83 79 79 Q74 70 79 62 Z" fill="#7d3d3d"/><path d="M80 78 Q87 69 93 76 Q88 82 80 78Z" fill="#e79a9a" stroke="none"/>`
+    :`<path d="M78 68 Q84 75 90 67" fill="none" stroke-width="2.6"/>`;
+  return bunWrap(c.under+c.over+`<ellipse cx="74" cy="64" rx="6.5" ry="4.2" fill="#e8a28d" opacity=".55" stroke="none"/>
+    <circle cx="68" cy="54" r="5" fill="${INK}" stroke="none"/><circle cx="69.6" cy="52.2" r="1.7" fill="#fff" stroke="none"/>${mouth}`);
+}
+function svgBunFront(open){
+  const c=bunCommon(open?[[34,89],[66,89]]:[[36,88],[64,90]]);
+  const mouth=open
+    ?`<ellipse cx="50" cy="71" rx="9.5" ry="8.5" fill="#7d3d3d"/><path d="M42 74 Q50 66 58 74 Q50 80 42 74Z" fill="#e79a9a" stroke="none"/>`
+    :`<path d="M42 68 Q50 76 58 68" fill="none" stroke-width="2.6"/>`;
+  return bunWrap(c.under+c.over+`<ellipse cx="25" cy="66" rx="6.5" ry="4.2" fill="#e8a28d" opacity=".55" stroke="none"/><ellipse cx="75" cy="66" rx="6.5" ry="4.2" fill="#e8a28d" opacity=".55" stroke="none"/>
+    <circle cx="36" cy="55" r="5" fill="${INK}" stroke="none"/><circle cx="37.6" cy="53.2" r="1.7" fill="#fff" stroke="none"/>
+    <circle cx="64" cy="55" r="5" fill="${INK}" stroke="none"/><circle cx="65.6" cy="53.2" r="1.7" fill="#fff" stroke="none"/>${mouth}`);
+}
+function svgBunBack(a){
+  const c=bunCommon(a?[[34,89],[66,89]]:[[36,88],[64,90]]);
+  return bunWrap(c.under+c.over+`<path d="M30 78 Q50 84 70 78" fill="none" stroke="#d8c38f" stroke-width="2" opacity=".8"/>`);
 }
 
 // 機車
@@ -596,28 +621,36 @@ function bake(name,svg){
   };
   im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
-bake('bun',svgBun());bake('scooter',svgScooter());
+bake('sideO',svgBunSide(true));bake('sideC',svgBunSide(false));bake('frontO',svgBunFront(true));bake('frontC',svgBunFront(false));
+bake('backA',svgBunBack(true));bake('backB',svgBunBack(false));
+bake('scooter',svgScooter());
 bake('mosA',svgMosquito(true));bake('mosB',svgMosquito(false));
 bake('dogA',svgDog(true));bake('dogB',svgDog(false));
 bake('arms',svgTyphoonArms());bake('face',svgTyphoonFace());
 
 function drawPlayer(){
-  const p=pos(P),cx=(p.x+.5)*cell,cy=(p.y+.5)*cell,r=cell*.46;
+  // 主角：小籠包。左右畫側面（朝左時翻轉）、往下畫正面、往上畫背面
+  const p=pos(P),cx=(p.x+.5)*cell,cy=(p.y+.5)*cell;
+  const moving=!!(P.dx||P.dy);
+  const f=P.face;
+  const chomp=G.chomp>0;
+  const cyc=Math.sin(G.time*14)>0;
+  const open=chomp||(moving&&cyc);
+  let name,flip=1;
+  if(Math.abs(Math.sin(f))>.5){
+    name=Math.sin(f)>0?(open?'frontO':'frontC'):(moving&&cyc?'backA':'backB');
+  }else{
+    name=open?'sideO':'sideC';
+    flip=Math.cos(f)<0?-1:1;
+  }
+  const sp=SPR[name];
+  if(!sp)return;
+  let S=cell*1.15,sx=1,sy=1;
+  if(chomp){const t=Math.sin(Math.min(1,G.chomp/.3)*Math.PI);sx=1+.1*t;sy=1-.08*t;}   // 吃到字時彈一下
   if(G.invincible>0&&Math.sin(G.time*18)>0)ctx.globalAlpha=.35;
-  const open=(Math.sin(G.time*14)+1)/2*.5+.06,f=P.face;
-  ctx.lineJoin='round';
-  ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,f+open,f+Math.PI*2-open);ctx.closePath();
-  const bun=SPR.bun;
-  if(bun){
-    ctx.save();ctx.clip();
-    ctx.translate(cx,cy);ctx.rotate(f);
-    if(Math.cos(f)<0)ctx.scale(1,-1);
-    ctx.drawImage(bun.n,-r,-r,2*r,2*r);
-    ctx.restore();
-  }else{ctx.fillStyle='#f6eedb';ctx.fill();}
-  ctx.strokeStyle=INK;ctx.lineWidth=Math.max(1.2,cell*.055);
-  ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,f+open,f+Math.PI*2-open);ctx.closePath();ctx.stroke();
-  ctx.globalAlpha=1;
+  ctx.save();ctx.translate(cx,cy+S*.32);ctx.scale(flip*sx,sy);
+  ctx.drawImage(sp.n,-S/2,-S*.92,S,S);
+  ctx.restore();ctx.globalAlpha=1;
 }
 function drawMonster(m){
   const p=pos(m),cx=(p.x+.5)*cell,cy=(p.y+.5)*cell,r=cell*.44;
