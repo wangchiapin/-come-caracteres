@@ -40,6 +40,8 @@ function syl2zy(s){
   if(tone===5)return '˙'+z; if(tone===1)return z; return z+MARK[tone];
 }
 const zy=py=>{const parts=/^[eēéěè]r$/.test(py)?[py]:split(py);return parts.map(syl2zy).join('');};
+// 台灣讀音修正表（依 GoodTeacher；重新同步字庫時也會套用，不會被蓋掉）
+const FIX={餛飩:'húndùn',椰子:'yézi',石榴:'shíliú',駱駝:'luòtuó',蒼蠅:'cāngyíng',行李:'xínglǐ',眼睛:'yǎnjīng',耳朵:'ěrduǒ',嘴巴:'zuǐbā',頭髮:'tóufǎ',指甲:'zhǐjiǎ',下巴:'xiàbā',骨頭:'gǔtóu',背包:'bēibāo',髮圈:'fǎquān',髮夾:'fǎjiá',星星:'xīngxīng',涼快:'liángkuài',微風:'wéifēng',枕頭:'zhěntóu',掃把:'sǎobǎ',蓮蓬頭:'liánpéngtóu',洗髮精:'xǐfǎjīng',鑰匙:'yàoshi'};
 const s=fs.readFileSync(src,'utf8');
 const a=s.indexOf('const THEMES = [');
 const b=s.indexOf('\n];',a)+3;
@@ -47,6 +49,7 @@ const T=eval(s.slice(a+'const THEMES = '.length,b).replace(/;\s*$/,''));
 const seen=new Set(),out=[];
 T.forEach(t=>t.words.forEach(w=>{
   if(seen.has(w[0]))return;seen.add(w[0]);
+  if(FIX[w[0]])w[2]=FIX[w[0]];
   const z=zy(w[2]);if(/\?/.test(z))throw new Error('注音失敗 '+w[0]+' '+w[2]+' '+z);
   out.push({zh:w[0],sc:w[1],py:w[2],zy:z,es:w[3],en:w[4]});
 }));
