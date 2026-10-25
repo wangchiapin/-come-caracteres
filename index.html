@@ -11,7 +11,7 @@ html{color-scheme:light}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
   font-family:-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none}
-#app{max-width:480px;height:100%;margin:0 auto;display:flex;flex-direction:column;padding:8px 8px calc(8px + env(safe-area-inset-bottom));position:relative}
+#app{max-width:min(100vw,calc((100vh - 140px)*15/17 + 16px),900px);height:100%;margin:0 auto;display:flex;flex-direction:column;padding:8px 8px calc(8px + env(safe-area-inset-bottom));position:relative}
 #hud{display:flex;justify-content:space-between;align-items:center;font-size:15px;padding:2px 4px 6px;color:var(--sub)}
 #hud b{color:var(--ink);font-size:18px;font-weight:600}
 #lives{letter-spacing:2px;color:var(--bad);font-size:18px}
