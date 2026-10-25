@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>吃字小精靈 · Come Caracteres</title>
+<title>吃字小籠包 · Come Caracteres</title>
 <style>
 html{color-scheme:light}
 :root{--bg:#f5f2ea;--paper:#faf8f3;--ink:#3b3935;--line:#cfc8b8;--sub:#8a8478;--ok:#6b8e6b;--bad:#b5605a}
@@ -79,7 +79,7 @@ label.chk{display:flex;align-items:center;justify-content:center;gap:8px;font-si
 
 <script>
 /* =====================================================
-   吃字小精靈 · Come Caracteres
+   吃字小籠包 · Come Caracteres
    單一 HTML。第一版：排行榜只存本機最高分（未接 Firebase）
    ===================================================== */
 
@@ -911,7 +911,7 @@ function applyLang(){
   document.documentElement.lang=S.lang==='zh'?(S.script==='simp'?'zh-CN':'zh-TW'):S.lang;
   $('tScore').textContent=T('score');$('tStage').textContent=T('stage');
   $('speak').setAttribute('aria-label',T('listenAria'));
-  document.title=(S.script==='simp'?'吃字小精灵':'吃字小精靈')+' · Come Caracteres';
+  document.title=(S.script==='simp'?'吃字小笼包':'吃字小籠包')+' · Come Caracteres';
 }
 let best=lsGet('cc_best',0);
 
@@ -1560,7 +1560,7 @@ function showMenu(){
     ?`<div class="lab">${T('mode')}</div><div class="row"><button class="opt on" data-set="mode" data-v="listen">${T('modeListen')}</button></div><p style="margin:0">${T('listenOnlyNote')}</p>`
     :segRow(T('mode'),'mode',[['text',T(S.lang==='en'?'modeTextEn':'modeTextEs')],['listen',T('modeListen')]],cfg.mode);
   o.innerHTML=`<div class="card">
-    <div class="brand"><img class="logo" id="logo" alt=""><div><h1>${S.script==='simp'?'吃字小精灵':'吃字小精靈'}</h1><h2>Come Caracteres</h2></div></div>
+    <div class="brand"><img class="logo" id="logo" alt=""><div><h1>${S.script==='simp'?'吃字小笼包':'吃字小籠包'}</h1><h2>Come Caracteres</h2></div></div>
     ${modeRow}
     <button class="main" id="go">${T('play')}</button>
     <div class="row2"><button class="sub" id="lb">🏆 ${T('board')}</button><button class="sub" id="st">⚙ ${T('settings')}</button></div>
