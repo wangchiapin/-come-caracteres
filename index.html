@@ -238,14 +238,14 @@ function setWant(dx,dy){
 
 /* ---------- 遊戲狀態 ---------- */
 let state='menu',G=null,P=null;
-const MCOLORS=['#8c6f5a','#6f8a8c','#9a7b86','#8a8f6a'];
+const MCOLORS=['#b5705a','#6f6a62','#b89968','#6f8a8c']; // 機車、蚊子、野狗、颱風
 function monstersForStage(s){return s>=5?4:s>=3?3:2;}
 function monsterBase(){return Math.min(4.6,3.1+.25*(G.stage-1));}
 
 function addMonster(i,wait){
   const h=HOMES[i%HOMES.length];
   const m=makeEnt(h[0],h[1],3.1);
-  m.color=MCOLORS[i%4];m.home=h;m.wait=wait;
+  m.type=i%4;m.color=MCOLORS[i%4];m.fx=1;m.home=h;m.wait=wait;
   G.monsters.push(m);
 }
 function startGame(){
@@ -449,40 +449,202 @@ function drawItem(it){
   if(power)ctx.restore();
   ctx.globalAlpha=1;
 }
+/* ================= 角色圖：向量圖（SVG）預先畫成小圖，遊戲中直接貼上 ================= */
+const SVG_H='<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 100 100">';
+const INK='#3b3935';
+function pol(cx,cy,r,deg){const a=deg*Math.PI/180;return [cx+Math.cos(a)*r,cy+Math.sin(a)*r];}
+function f1(n){return Math.round(n*10)/10;}
+
+// 小籠包（朝右；嘴巴由程式用扇形裁切）
+function svgBun(){
+  let pl='';
+  for(let i=0;i<18;i++){
+    const d=i*20+6,a=pol(50,50,10,d),m=pol(50,50,21,d+15),b=pol(50,50,31,d+8);
+    pl+=`<path d="M${f1(a[0])} ${f1(a[1])} Q${f1(m[0])} ${f1(m[1])} ${f1(b[0])} ${f1(b[1])}"/>`;
+  }
+  return SVG_H+`<defs>
+  <radialGradient id="g" cx="42%" cy="38%" r="70%"><stop offset="0" stop-color="#fffbf1"/><stop offset=".65" stop-color="#f4e8cc"/><stop offset="1" stop-color="#e3d0a3"/></radialGradient>
+  </defs>
+  <circle cx="50" cy="50" r="51" fill="url(#g)"/>
+  <circle cx="50" cy="50" r="38" fill="none" stroke="#e3d0a3" stroke-width="1.4" opacity=".7"/>
+  <g fill="none" stroke="#bfa774" stroke-width="1.7" stroke-linecap="round">${pl}</g>
+  <circle cx="50" cy="50" r="6.5" fill="#f6ecd2" stroke="#bfa774" stroke-width="1.7"/>
+  <path d="M16 34 Q24 16 44 11" stroke="#fff" stroke-opacity=".75" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+  <ellipse cx="75" cy="60" rx="6.5" ry="4.2" fill="#e8a28d" opacity=".55"/>
+  <circle cx="77" cy="32" r="5" fill="${INK}"/><circle cx="78.6" cy="30.2" r="1.6" fill="#fff"/>
+  </svg>`;
+}
+
+// 機車
+function svgScooter(){
+  return SVG_H+`<g stroke="${INK}" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round">
+  <ellipse cx="50" cy="91" rx="40" ry="3.6" fill="#000" opacity=".08" stroke="none"/>
+  <g stroke="#a39b8a" stroke-width="2.2" fill="none"><path d="M2 44 L12 44"/><path d="M0 54 L10 54"/><path d="M3 64 L11 64"/></g>
+  <path d="M42 62 L76 62 L76 74 L44 74 Z" fill="#a85a47"/>
+  <circle cx="26" cy="75" r="13" fill="#4a4743"/><circle cx="26" cy="75" r="7.2" fill="#ddd6c4"/><circle cx="26" cy="75" r="2.3" fill="${INK}"/>
+  <path d="M17 70 L35 80 M35 70 L17 80 M26 62 L26 88" stroke="#a39b8a" stroke-width="1.3" fill="none"/>
+  <path d="M10 64 Q6 36 30 33 L54 33 L60 64 Z" fill="#c4715c"/>
+  <path d="M14 38 Q30 26 56 31 L56 37 L14 40 Z" fill="#4a4743"/>
+  <path d="M63 72 L71 30 L84 32 L82 72 Z" fill="#c4715c"/>
+  <circle cx="82" cy="75" r="11" fill="#4a4743"/><circle cx="82" cy="75" r="6" fill="#ddd6c4"/><circle cx="82" cy="75" r="2" fill="${INK}"/>
+  <path d="M70 25 L90 20" stroke-width="4.6"/><path d="M85 19 L93 17" stroke="#8a8478" stroke-width="3"/>
+  <circle cx="86" cy="40" r="5.2" fill="#f2de9c"/>
+  <path d="M15 52 Q15 43 25 40" stroke="#fff" stroke-opacity=".6" stroke-width="2.4" fill="none"/>
+  <circle cx="22" cy="48" r="6.4" fill="#fff"/><circle cx="40" cy="48" r="6.4" fill="#fff"/>
+  <circle cx="24" cy="49" r="3" fill="${INK}" stroke="none"/><circle cx="42" cy="49" r="3" fill="${INK}" stroke="none"/>
+  <path d="M15 40 L27 44 M47 40 L35 44" stroke-width="2.4"/>
+  </g></svg>`;
+}
+
+// 蚊子（A：翅膀向上，B：翅膀向下）
+function svgMosquito(up){
+  const wings=up
+   ?`<path d="M44 44 Q30 12 14 8 Q12 28 32 46 Z" fill="#fff" fill-opacity=".75"/><path d="M52 44 Q52 10 68 4 Q78 22 60 46 Z" fill="#fff" fill-opacity=".7"/>
+     <path d="M42 42 Q28 22 18 12 M54 40 Q58 22 66 10" stroke="#b9b2a2" stroke-width="1.1" fill="none"/>`
+   :`<path d="M44 46 Q24 38 6 48 Q22 60 44 54 Z" fill="#fff" fill-opacity=".75"/><path d="M52 46 Q40 28 22 24 Q22 44 50 52 Z" fill="#fff" fill-opacity=".7"/>
+     <path d="M42 49 Q24 46 10 49 M50 46 Q38 36 26 29" stroke="#b9b2a2" stroke-width="1.1" fill="none"/>`;
+  return SVG_H+`<g stroke="${INK}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+  <g fill="none"><path d="M34 60 L26 78 L20 90"/><path d="M44 62 L42 80 L38 93"/><path d="M54 62 L60 80 L66 92"/></g>
+  ${wings}
+  <path d="M6 52 Q8 38 28 42 L48 47 L48 64 L28 64 Q8 68 6 52 Z" fill="#7d776c"/>
+  <g stroke="#e0dacb" stroke-width="2.2" fill="none"><path d="M16 44 L16 62"/><path d="M24 42 L24 63"/><path d="M32 44 L32 63"/><path d="M40 46 L40 64"/></g>
+  <ellipse cx="56" cy="54" rx="13" ry="11.5" fill="#908a7e"/>
+  <circle cx="73" cy="51" r="10.5" fill="#6f6a62"/>
+  <path d="M71 41 Q76 31 86 29" fill="none"/>
+  <path d="M82 55 L97 64" stroke-width="3"/>
+  <circle cx="76" cy="48" r="5.6" fill="#fff"/><circle cx="77.6" cy="48.6" r="2.9" fill="${INK}" stroke="none"/>
+  <path d="M70 41 L81 44" stroke-width="2.3"/>
+  </g></svg>`;
+}
+
+// 野狗（A、B 兩種腳的位置）
+function svgDog(a){
+  const L=a?[[28,62,20,86],[38,64,42,86],[60,64,54,86],[70,62,80,84]]:[[28,62,34,86],[38,64,32,86],[60,64,66,86],[70,62,64,86]];
+  let legs='';
+  for(const l of L)legs+=`<path d="M${l[0]} ${l[1]} L${l[2]} ${l[3]}" stroke="${INK}" stroke-width="10"/>`;
+  for(const l of L)legs+=`<path d="M${l[0]} ${l[1]} L${l[2]} ${l[3]}" stroke="#bf9d69" stroke-width="6.4"/>`;
+  return SVG_H+`<g stroke-linejoin="round" stroke-linecap="round">
+  <ellipse cx="50" cy="92" rx="36" ry="3.4" fill="#000" opacity=".08"/>
+  <path d="M18 50 Q3 46 6 26" fill="none" stroke="${INK}" stroke-width="9"/><path d="M18 50 Q3 46 6 26" fill="none" stroke="#bf9d69" stroke-width="5.6"/>
+  ${legs}
+  <g stroke="${INK}" stroke-width="2.3">
+  <ellipse cx="46" cy="52" rx="29" ry="17" fill="#c9a872"/>
+  <path d="M26 42 Q40 34 56 40 Q58 50 44 50 Q28 52 26 42 Z" fill="#a07d4c" stroke="none"/>
+  <ellipse cx="46" cy="52" rx="29" ry="17" fill="none"/>
+  <circle cx="77" cy="38" r="15.5" fill="#d2b27c"/>
+  <ellipse cx="89" cy="44" rx="10" ry="7.2" fill="#e6d2a8"/>
+  <ellipse cx="97" cy="41.5" rx="3.2" ry="2.6" fill="${INK}"/>
+  <path d="M86 50 Q90 56 95 51" fill="#e59a9a" stroke-width="1.6"/>
+  <path d="M68 26 Q56 18 54 36 Q58 46 68 38 Z" fill="#8a6a3e"/>
+  <circle cx="80" cy="34" r="4.6" fill="#fff"/><circle cx="81.4" cy="34.6" r="2.4" fill="${INK}" stroke="none"/>
+  <path d="M74 28 L85 31" stroke-width="2.3"/>
+  </g>
+  <path d="M30 40 Q34 36 40 36" stroke="#fff" stroke-opacity=".5" stroke-width="2.4" fill="none"/>
+  </g></svg>`;
+}
+
+// 颱風：旋轉的雲臂 + 不轉的臉
+function svgTyphoonArms(){
+  let p='';
+  for(let k=0;k<3;k++){
+    let d='';
+    for(let i=0;i<=22;i++){
+      const t=i/22,pt=pol(50,50,10+30*t,k*120+t*210);
+      d+=(i?'L':'M')+f1(pt[0])+' '+f1(pt[1])+' ';
+    }
+    p+=`<path d="${d}" stroke="${INK}" stroke-width="14"/>`;
+  }
+  for(let k=0;k<3;k++){
+    let d='';
+    for(let i=0;i<=22;i++){
+      const t=i/22,pt=pol(50,50,10+30*t,k*120+t*210);
+      d+=(i?'L':'M')+f1(pt[0])+' '+f1(pt[1])+' ';
+    }
+    p+=`<path d="${d}" stroke="#7fa3a5" stroke-width="10.4"/>`;
+  }
+  for(let k=0;k<3;k++){
+    let d='';
+    for(let i=2;i<=19;i++){
+      const t=i/22,pt=pol(50,50,10+30*t-2.4,k*120+t*210-4);
+      d+=(i>2?'L':'M')+f1(pt[0])+' '+f1(pt[1])+' ';
+    }
+    p+=`<path d="${d}" stroke="#d9ecec" stroke-opacity=".8" stroke-width="2.4"/>`;
+  }
+  return SVG_H+`<g fill="none" stroke-linecap="round" stroke-linejoin="round">${p}</g></svg>`;
+}
+function svgTyphoonFace(){
+  return SVG_H+`<g stroke="${INK}" stroke-width="2.3" stroke-linecap="round">
+  <circle cx="50" cy="50" r="17" fill="#faf8f3"/>
+  <circle cx="43.5" cy="47" r="3.6" fill="${INK}" stroke="none"/><circle cx="56.5" cy="47" r="3.6" fill="${INK}" stroke="none"/>
+  <circle cx="44.6" cy="45.8" r="1.1" fill="#fff" stroke="none"/><circle cx="57.6" cy="45.8" r="1.1" fill="#fff" stroke="none"/>
+  <path d="M44 56 Q50 61 56 56" fill="none"/>
+  <path d="M38 40 L47 43 M62 40 L53 43" fill="none"/>
+  </g></svg>`;
+}
+
+const SPR={};
+function bake(name,svg){
+  const im=new Image();
+  im.onload=()=>{
+    const mk=fill=>{
+      const c=document.createElement('canvas');c.width=c.height=192;
+      const x=c.getContext('2d');x.drawImage(im,0,0,192,192);
+      if(fill){x.globalCompositeOperation='source-atop';x.fillStyle=fill;x.fillRect(0,0,192,192);}
+      return c;
+    };
+    SPR[name]={n:mk(),f:mk('rgba(150,172,206,.66)'),b:mk('rgba(250,248,243,.88)')};
+  };
+  im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+bake('bun',svgBun());bake('scooter',svgScooter());
+bake('mosA',svgMosquito(true));bake('mosB',svgMosquito(false));
+bake('dogA',svgDog(true));bake('dogB',svgDog(false));
+bake('arms',svgTyphoonArms());bake('face',svgTyphoonFace());
+
 function drawPlayer(){
-  const p=pos(P),cx=(p.x+.5)*cell,cy=(p.y+.5)*cell,r=cell*.42;
+  const p=pos(P),cx=(p.x+.5)*cell,cy=(p.y+.5)*cell,r=cell*.46;
   if(G.invincible>0&&Math.sin(G.time*18)>0)ctx.globalAlpha=.35;
-  const open=(Math.sin(G.time*14)+1)/2*.55+.05;
-  ctx.fillStyle='#3b3935';ctx.beginPath();ctx.moveTo(cx,cy);
-  ctx.arc(cx,cy,r,P.face+open,P.face+Math.PI*2-open);ctx.closePath();ctx.fill();
+  const open=(Math.sin(G.time*14)+1)/2*.5+.06,f=P.face;
+  ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,f+open,f+Math.PI*2-open);ctx.closePath();
+  const bun=SPR.bun;
+  if(bun){
+    ctx.save();ctx.clip();
+    ctx.translate(cx,cy);ctx.rotate(f);
+    if(Math.cos(f)<0)ctx.scale(1,-1);
+    ctx.drawImage(bun.n,-r,-r,2*r,2*r);
+    ctx.restore();
+  }else{ctx.fillStyle='#f6eedb';ctx.fill();}
+  ctx.strokeStyle=INK;ctx.lineWidth=Math.max(1.2,cell*.055);
+  ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,f+open,f+Math.PI*2-open);ctx.closePath();ctx.stroke();
   ctx.globalAlpha=1;
 }
 function drawMonster(m){
-  const p=pos(m),cx=(p.x+.5)*cell,cy=(p.y+.5)*cell,r=cell*.42;
-  const fr=G.fright>0;
-  let col=m.color;
-  if(fr)col=(G.fright<2&&Math.sin(G.time*14)>0)?'#f5f2ea':'#aab8cc';
+  const p=pos(m),cx=(p.x+.5)*cell,cy=(p.y+.5)*cell,r=cell*.44;
+  if(m.dx)m.fx=m.dx>0?1:-1;
+  if(!m.fx)m.fx=1;
+  const fr=G.fright>0,blink=fr&&G.fright<2&&Math.sin(G.time*14)>0;
+  const k=fr?(blink?'b':'f'):'n';
+  const S=cell*1.2;
   if(m.wait>0)ctx.globalAlpha=.6;
-  ctx.fillStyle=col;ctx.strokeStyle='#3b3935';ctx.lineWidth=1;
-  ctx.beginPath();ctx.arc(cx,cy-r*.1,r,Math.PI,0);
-  ctx.lineTo(cx+r,cy+r*.9);
-  const n=4;
-  for(let i=0;i<=n;i++){
-    const x=cx+r-(2*r*i/n),y=(i%2===0)?cy+r*.9:cy+r*.55;
-    ctx.lineTo(x,y);
-  }
-  ctx.closePath();ctx.fill();if(fr)ctx.stroke();
-  if(fr){
-    ctx.fillStyle='#3b3935';
-    ctx.beginPath();ctx.arc(cx-r*.35,cy-r*.15,r*.12,0,7);ctx.arc(cx+r*.35,cy-r*.15,r*.12,0,7);ctx.fill();
+  ctx.save();ctx.translate(cx,cy);
+  if(fr){ctx.scale(.84,.84);ctx.translate(Math.sin(G.time*32)*r*.06,r*.08);}      // 縮頭縮腦、發抖
+  if(m.type===3){
+    const a=SPR.arms,fc=SPR.face;
+    if(a){ctx.save();ctx.rotate(G.time*(fr?1.5:3.2));ctx.drawImage(a[k],-S/2,-S/2,S,S);ctx.restore();}
+    if(fc)ctx.drawImage(fc[k],-S/2,-S/2,S,S);
   }else{
-    for(const s of[-1,1]){
-      ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(cx+s*r*.38,cy-r*.15,r*.27,0,7);ctx.fill();
-      ctx.fillStyle='#3b3935';ctx.beginPath();ctx.arc(cx+s*r*.38+m.dx*r*.1,cy-r*.15+m.dy*r*.1,r*.13,0,7);ctx.fill();
-    }
+    const name=m.type===0?'scooter':m.type===1?(Math.floor(G.time*22)%2?'mosA':'mosB'):(Math.floor(G.time*9)%2?'dogA':'dogB');
+    const sp=SPR[name];
+    if(sp){ctx.save();ctx.scale(m.fx,1);ctx.drawImage(sp[k],-S/2,-S/2,S,S);ctx.restore();}
   }
-  ctx.globalAlpha=1;
+  if(fr){                                                                           // 冷汗
+    ctx.fillStyle='#8fb4d9';ctx.strokeStyle=INK;ctx.lineWidth=Math.max(1,cell*.03);
+    ctx.beginPath();ctx.moveTo(.72*r,-.9*r);ctx.quadraticCurveTo(.98*r,-.5*r,.72*r,-.42*r);ctx.quadraticCurveTo(.46*r,-.5*r,.72*r,-.9*r);ctx.fill();ctx.stroke();
+  }
+  ctx.restore();ctx.globalAlpha=1;
 }
+
 function draw(){
   ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,COLS*cell,ROWS*cell);
