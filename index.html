@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-hg-nocopy>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
@@ -11,7 +11,7 @@ html{color-scheme:light}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
   font-family:-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none}
-#app{max-width:min(100vw,calc((100vh - 140px)*15/17 + 16px),900px);height:100%;margin:0 auto;display:flex;flex-direction:column;padding:8px 8px calc(8px + env(safe-area-inset-bottom));position:relative}
+#app{max-width:min(100vw,calc((100vh - 140px)*15/19 + 16px),900px);height:100%;margin:0 auto;display:flex;flex-direction:column;padding:8px 8px calc(8px + env(safe-area-inset-bottom));position:relative}
 #hud{display:flex;justify-content:space-between;align-items:center;font-size:15px;padding:2px 4px 6px;color:var(--sub)}
 #hud b{color:var(--ink);font-size:18px;font-weight:600}
 #lives{letter-spacing:2px;color:var(--bad);font-size:18px}
@@ -25,9 +25,11 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
 #fb.ok{color:var(--ok)} #fb.bad{color:var(--bad)}
 #stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;margin-top:8px}
 canvas{display:block;background:var(--paper);border-radius:8px}
-#ov{position:absolute;inset:0;background:rgba(245,242,234,.94);display:none;align-items:center;justify-content:center;padding:20px;z-index:5}
+#ov{position:absolute;inset:0;background:rgba(245,242,234,.94);display:none;justify-content:center;padding:20px;z-index:5;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 #ov.show{display:flex}
-.card{width:100%;max-width:360px;text-align:center}
+.card{width:100%;max-width:360px;text-align:center;margin:auto;padding-bottom:50px}
+.row.sm button{padding:7px 4px;font-size:13px}
+.copy{font-size:10px;color:rgba(120,120,120,.85);margin-top:8px;line-height:1.4}
 .card h1{margin:0 0 2px;font-size:30px;font-weight:600;letter-spacing:2px}
 .card h2{margin:0 0 14px;font-size:15px;font-weight:400;color:var(--sub)}
 .card p{font-size:13px;color:var(--sub);line-height:1.6;margin:10px 0}
@@ -48,9 +50,9 @@ label.chk{display:flex;align-items:center;justify-content:center;gap:8px;font-si
 <body>
 <div id="app">
   <div id="hud">
-    <span>Puntos <b id="score">0</b></span>
+    <span><span id="tScore">Puntos</span> <b id="score">0</b></span>
     <span id="lives"></span>
-    <span>Nivel <b id="stagev">1</b></span>
+    <span><span id="tStage">Nivel</span> <b id="stagev">1</b></span>
   </div>
   <div id="prompt">
     <button id="speak" class="hide" aria-label="Escuchar">🔊</button>
@@ -67,78 +69,162 @@ label.chk{display:flex;align-items:center;justify-content:center;gap:8px;font-si
    單一 HTML。第一版：排行榜只存本機最高分（未接 Firebase）
    ===================================================== */
 
-/* ---------- 字庫（範例，之後可換成「總字庫」） ---------- */
+/* ---------- 字庫（zh 繁體、sc 簡體、py 拼音、zy 注音、es 西文、en 英文；之後可換成「總字庫」） ---------- */
 const BANK=[
- // 初級：單字
- {l:1,zh:'一',py:'yī',es:'uno'},{l:1,zh:'二',py:'èr',es:'dos'},{l:1,zh:'三',py:'sān',es:'tres'},
- {l:1,zh:'四',py:'sì',es:'cuatro'},{l:1,zh:'五',py:'wǔ',es:'cinco'},
- {l:1,zh:'人',py:'rén',es:'persona'},{l:1,zh:'大',py:'dà',es:'grande'},{l:1,zh:'小',py:'xiǎo',es:'pequeño'},
- {l:1,zh:'水',py:'shuǐ',es:'agua'},{l:1,zh:'火',py:'huǒ',es:'fuego'},{l:1,zh:'山',py:'shān',es:'montaña'},
- {l:1,zh:'月',py:'yuè',es:'luna'},{l:1,zh:'日',py:'rì',es:'sol / día'},{l:1,zh:'口',py:'kǒu',es:'boca'},
- {l:1,zh:'手',py:'shǒu',es:'mano'},{l:1,zh:'心',py:'xīn',es:'corazón'},{l:1,zh:'木',py:'mù',es:'árbol / madera'},
- {l:1,zh:'門',py:'mén',es:'puerta'},{l:1,zh:'雨',py:'yǔ',es:'lluvia'},{l:1,zh:'狗',py:'gǒu',es:'perro'},
- {l:1,zh:'貓',py:'māo',es:'gato'},{l:1,zh:'魚',py:'yú',es:'pez'},{l:1,zh:'鳥',py:'niǎo',es:'pájaro'},
- {l:1,zh:'車',py:'chē',es:'carro'},{l:1,zh:'飯',py:'fàn',es:'arroz / comida'},{l:1,zh:'茶',py:'chá',es:'té'},
- {l:1,zh:'書',py:'shū',es:'libro'},{l:1,zh:'家',py:'jiā',es:'casa'},{l:1,zh:'好',py:'hǎo',es:'bueno'},
- // 中級：兩字詞
- {l:2,zh:'老師',py:'lǎoshī',es:'profesor'},{l:2,zh:'學生',py:'xuéshēng',es:'estudiante'},
- {l:2,zh:'朋友',py:'péngyǒu',es:'amigo'},{l:2,zh:'蘋果',py:'píngguǒ',es:'manzana'},
- {l:2,zh:'牛奶',py:'niúnǎi',es:'leche'},{l:2,zh:'電話',py:'diànhuà',es:'teléfono'},
- {l:2,zh:'學校',py:'xuéxiào',es:'escuela'},{l:2,zh:'醫院',py:'yīyuàn',es:'hospital'},
- {l:2,zh:'咖啡',py:'kāfēi',es:'café'},{l:2,zh:'手機',py:'shǒujī',es:'celular'},
- {l:2,zh:'火車',py:'huǒchē',es:'tren'},{l:2,zh:'捷運',py:'jiéyùn',es:'metro (MRT)'},
- {l:2,zh:'便當',py:'biàndāng',es:'lonche (bento)'},{l:2,zh:'夜市',py:'yèshì',es:'mercado nocturno'},
- {l:2,zh:'早餐',py:'zǎocān',es:'desayuno'},{l:2,zh:'天氣',py:'tiānqì',es:'clima'},
- {l:2,zh:'眼睛',py:'yǎnjīng',es:'ojos'},{l:2,zh:'冰箱',py:'bīngxiāng',es:'refrigerador'},
- {l:2,zh:'椅子',py:'yǐzi',es:'silla'},{l:2,zh:'桌子',py:'zhuōzi',es:'mesa'},
- // 高級
- {l:3,zh:'方便',py:'fāngbiàn',es:'conveniente'},{l:3,zh:'麻煩',py:'máfan',es:'molestia / problema'},
- {l:3,zh:'習慣',py:'xíguàn',es:'costumbre / acostumbrarse'},{l:3,zh:'經驗',py:'jīngyàn',es:'experiencia'},
- {l:3,zh:'需要',py:'xūyào',es:'necesitar'},{l:3,zh:'決定',py:'juédìng',es:'decidir'},
- {l:3,zh:'容易',py:'róngyì',es:'fácil'},{l:3,zh:'重要',py:'zhòngyào',es:'importante'},
- {l:3,zh:'健康',py:'jiànkāng',es:'salud'},{l:3,zh:'環境',py:'huánjìng',es:'medio ambiente'},
- {l:3,zh:'準備',py:'zhǔnbèi',es:'preparar'},{l:3,zh:'擔心',py:'dānxīn',es:'preocuparse'},
- {l:3,zh:'邀請',py:'yāoqǐng',es:'invitar'},{l:3,zh:'比賽',py:'bǐsài',es:'competencia'},
- {l:3,zh:'機會',py:'jīhuì',es:'oportunidad'}
+ {l:1,zh:'一',sc:'一',py:'yī',zy:'ㄧ',es:'uno',en:'one'},
+ {l:1,zh:'二',sc:'二',py:'èr',zy:'ㄦˋ',es:'dos',en:'two'},
+ {l:1,zh:'三',sc:'三',py:'sān',zy:'ㄙㄢ',es:'tres',en:'three'},
+ {l:1,zh:'四',sc:'四',py:'sì',zy:'ㄙˋ',es:'cuatro',en:'four'},
+ {l:1,zh:'五',sc:'五',py:'wǔ',zy:'ㄨˇ',es:'cinco',en:'five'},
+ {l:1,zh:'人',sc:'人',py:'rén',zy:'ㄖㄣˊ',es:'persona',en:'person'},
+ {l:1,zh:'大',sc:'大',py:'dà',zy:'ㄉㄚˋ',es:'grande',en:'big'},
+ {l:1,zh:'小',sc:'小',py:'xiǎo',zy:'ㄒㄧㄠˇ',es:'pequeño',en:'small'},
+ {l:1,zh:'水',sc:'水',py:'shuǐ',zy:'ㄕㄨㄟˇ',es:'agua',en:'water'},
+ {l:1,zh:'火',sc:'火',py:'huǒ',zy:'ㄏㄨㄛˇ',es:'fuego',en:'fire'},
+ {l:1,zh:'山',sc:'山',py:'shān',zy:'ㄕㄢ',es:'montaña',en:'mountain'},
+ {l:1,zh:'月',sc:'月',py:'yuè',zy:'ㄩㄝˋ',es:'luna',en:'moon / month'},
+ {l:1,zh:'日',sc:'日',py:'rì',zy:'ㄖˋ',es:'sol / día',en:'sun / day'},
+ {l:1,zh:'口',sc:'口',py:'kǒu',zy:'ㄎㄡˇ',es:'boca',en:'mouth'},
+ {l:1,zh:'手',sc:'手',py:'shǒu',zy:'ㄕㄡˇ',es:'mano',en:'hand'},
+ {l:1,zh:'心',sc:'心',py:'xīn',zy:'ㄒㄧㄣ',es:'corazón',en:'heart'},
+ {l:1,zh:'木',sc:'木',py:'mù',zy:'ㄇㄨˋ',es:'árbol / madera',en:'tree / wood'},
+ {l:1,zh:'門',sc:'门',py:'mén',zy:'ㄇㄣˊ',es:'puerta',en:'door'},
+ {l:1,zh:'雨',sc:'雨',py:'yǔ',zy:'ㄩˇ',es:'lluvia',en:'rain'},
+ {l:1,zh:'狗',sc:'狗',py:'gǒu',zy:'ㄍㄡˇ',es:'perro',en:'dog'},
+ {l:1,zh:'貓',sc:'猫',py:'māo',zy:'ㄇㄠ',es:'gato',en:'cat'},
+ {l:1,zh:'魚',sc:'鱼',py:'yú',zy:'ㄩˊ',es:'pez',en:'fish'},
+ {l:1,zh:'鳥',sc:'鸟',py:'niǎo',zy:'ㄋㄧㄠˇ',es:'pájaro',en:'bird'},
+ {l:1,zh:'車',sc:'车',py:'chē',zy:'ㄔㄜ',es:'carro',en:'car'},
+ {l:1,zh:'飯',sc:'饭',py:'fàn',zy:'ㄈㄢˋ',es:'arroz / comida',en:'rice / meal'},
+ {l:1,zh:'茶',sc:'茶',py:'chá',zy:'ㄔㄚˊ',es:'té',en:'tea'},
+ {l:1,zh:'書',sc:'书',py:'shū',zy:'ㄕㄨ',es:'libro',en:'book'},
+ {l:1,zh:'家',sc:'家',py:'jiā',zy:'ㄐㄧㄚ',es:'casa',en:'home'},
+ {l:1,zh:'好',sc:'好',py:'hǎo',zy:'ㄏㄠˇ',es:'bueno',en:'good'},
+ {l:2,zh:'老師',sc:'老师',py:'lǎoshī',zy:'ㄌㄠˇㄕ',es:'profesor',en:'teacher'},
+ {l:2,zh:'學生',sc:'学生',py:'xuéshēng',zy:'ㄒㄩㄝˊㄕㄥ',es:'estudiante',en:'student'},
+ {l:2,zh:'朋友',sc:'朋友',py:'péngyǒu',zy:'ㄆㄥˊㄧㄡˇ',es:'amigo',en:'friend'},
+ {l:2,zh:'蘋果',sc:'苹果',py:'píngguǒ',zy:'ㄆㄧㄥˊㄍㄨㄛˇ',es:'manzana',en:'apple'},
+ {l:2,zh:'牛奶',sc:'牛奶',py:'niúnǎi',zy:'ㄋㄧㄡˊㄋㄞˇ',es:'leche',en:'milk'},
+ {l:2,zh:'電話',sc:'电话',py:'diànhuà',zy:'ㄉㄧㄢˋㄏㄨㄚˋ',es:'teléfono',en:'telephone'},
+ {l:2,zh:'學校',sc:'学校',py:'xuéxiào',zy:'ㄒㄩㄝˊㄒㄧㄠˋ',es:'escuela',en:'school'},
+ {l:2,zh:'醫院',sc:'医院',py:'yīyuàn',zy:'ㄧㄩㄢˋ',es:'hospital',en:'hospital'},
+ {l:2,zh:'咖啡',sc:'咖啡',py:'kāfēi',zy:'ㄎㄚㄈㄟ',es:'café',en:'coffee'},
+ {l:2,zh:'手機',sc:'手机',py:'shǒujī',zy:'ㄕㄡˇㄐㄧ',es:'celular',en:'cell phone'},
+ {l:2,zh:'火車',sc:'火车',py:'huǒchē',zy:'ㄏㄨㄛˇㄔㄜ',es:'tren',en:'train'},
+ {l:2,zh:'捷運',sc:'捷运',py:'jiéyùn',zy:'ㄐㄧㄝˊㄩㄣˋ',es:'metro (MRT)',en:'MRT (metro)'},
+ {l:2,zh:'便當',sc:'便当',py:'biàndāng',zy:'ㄅㄧㄢˋㄉㄤ',es:'lonche (bento)',en:'lunch box (bento)'},
+ {l:2,zh:'夜市',sc:'夜市',py:'yèshì',zy:'ㄧㄝˋㄕˋ',es:'mercado nocturno',en:'night market'},
+ {l:2,zh:'早餐',sc:'早餐',py:'zǎocān',zy:'ㄗㄠˇㄘㄢ',es:'desayuno',en:'breakfast'},
+ {l:2,zh:'天氣',sc:'天气',py:'tiānqì',zy:'ㄊㄧㄢㄑㄧˋ',es:'clima',en:'weather'},
+ {l:2,zh:'眼睛',sc:'眼睛',py:'yǎnjīng',zy:'ㄧㄢˇㄐㄧㄥ',es:'ojos',en:'eyes'},
+ {l:2,zh:'冰箱',sc:'冰箱',py:'bīngxiāng',zy:'ㄅㄧㄥㄒㄧㄤ',es:'refrigerador',en:'refrigerator'},
+ {l:2,zh:'椅子',sc:'椅子',py:'yǐzi',zy:'ㄧˇ˙ㄗ',es:'silla',en:'chair'},
+ {l:2,zh:'桌子',sc:'桌子',py:'zhuōzi',zy:'ㄓㄨㄛ˙ㄗ',es:'mesa',en:'table'},
+ {l:3,zh:'方便',sc:'方便',py:'fāngbiàn',zy:'ㄈㄤㄅㄧㄢˋ',es:'conveniente',en:'convenient'},
+ {l:3,zh:'麻煩',sc:'麻烦',py:'máfan',zy:'ㄇㄚˊ˙ㄈㄢ',es:'molestia / problema',en:'trouble / bother'},
+ {l:3,zh:'習慣',sc:'习惯',py:'xíguàn',zy:'ㄒㄧˊㄍㄨㄢˋ',es:'costumbre / acostumbrarse',en:'habit / get used to'},
+ {l:3,zh:'經驗',sc:'经验',py:'jīngyàn',zy:'ㄐㄧㄥㄧㄢˋ',es:'experiencia',en:'experience'},
+ {l:3,zh:'需要',sc:'需要',py:'xūyào',zy:'ㄒㄩㄧㄠˋ',es:'necesitar',en:'to need'},
+ {l:3,zh:'決定',sc:'决定',py:'juédìng',zy:'ㄐㄩㄝˊㄉㄧㄥˋ',es:'decidir',en:'to decide'},
+ {l:3,zh:'容易',sc:'容易',py:'róngyì',zy:'ㄖㄨㄥˊㄧˋ',es:'fácil',en:'easy'},
+ {l:3,zh:'重要',sc:'重要',py:'zhòngyào',zy:'ㄓㄨㄥˋㄧㄠˋ',es:'importante',en:'important'},
+ {l:3,zh:'健康',sc:'健康',py:'jiànkāng',zy:'ㄐㄧㄢˋㄎㄤ',es:'salud',en:'health'},
+ {l:3,zh:'環境',sc:'环境',py:'huánjìng',zy:'ㄏㄨㄢˊㄐㄧㄥˋ',es:'medio ambiente',en:'environment'},
+ {l:3,zh:'準備',sc:'准备',py:'zhǔnbèi',zy:'ㄓㄨㄣˇㄅㄟˋ',es:'preparar',en:'to prepare'},
+ {l:3,zh:'擔心',sc:'担心',py:'dānxīn',zy:'ㄉㄢㄒㄧㄣ',es:'preocuparse',en:'to worry'},
+ {l:3,zh:'邀請',sc:'邀请',py:'yāoqǐng',zy:'ㄧㄠㄑㄧㄥˇ',es:'invitar',en:'to invite'},
+ {l:3,zh:'比賽',sc:'比赛',py:'bǐsài',zy:'ㄅㄧˇㄙㄞˋ',es:'competencia',en:'competition'},
+ {l:3,zh:'機會',sc:'机会',py:'jīhuì',zy:'ㄐㄧㄏㄨㄟˋ',es:'oportunidad',en:'opportunity'}
 ];
+const POWER={zh:'力',sc:'力',py:'lì',zy:'ㄌㄧˋ',es:'',en:''};
 
-/* ---------- 地圖 15 x 17（# 牆；第 8 列兩側是穿越隧道） ---------- */
-const MAP=[
- "###############",
- "#......#......#",
- "#.####.#.####.#",
- "#.............#",
- "#.##.#...#.##.#",
- "#....#...#....#",
- "####.#...#.####",
- "####.#.#.#.####",
- ".....#...#.....",
- "####.#.#.#.####",
- "####.#...#.####",
- "#....#...#....#",
- "#.##.#...#.##.#",
- "#.............#",
- "#.####.#.####.#",
- "#......#......#",
- "###############"
-];
-const COLS=15,ROWS=17,TUNNEL=8;
+/* ---------- 地圖 15 x 19（# 牆；第 9 列兩側是穿越隧道；每場、每升一級都重新隨機產生） ---------- */
+const COLS=15,ROWS=19,TUNNEL=9;
 const PLAYER_START=[7,13];
-const HOMES=[[7,8],[6,8],[8,8],[7,6]];
-const grid=MAP.map(r=>r.split(''));
+const HOMES=[[7,9],[6,9],[8,9],[7,7]];
+let grid=[],SPAWN=[];
 function isWall(x,y){
   if(y===TUNNEL&&(x<0||x>=COLS))return false;
   if(x<0||x>=COLS||y<0||y>=ROWS)return true;
   return grid[y][x]==='#';
 }
 const wrapX=x=>(x+COLS)%COLS;
-const SPAWN=[];
-for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
-  if(grid[y][x]==='#')continue;
-  if(x>=5&&x<=9&&y>=4&&y<=12)continue;
-  if(y===TUNNEL&&(x===0||x===COLS-1))continue;
-  if(x===PLAYER_START[0]&&y===PLAYER_START[1])continue;
-  SPAWN.push([x,y]);
+function buildMaze(){
+  grid=genMaze().map(r=>r.split(''));
+  SPAWN=[];
+  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+    if(grid[y][x]==='#')continue;
+    if(x>=4&&x<=10&&y>=6&&y<=12)continue;
+    if(y===TUNNEL&&(x===0||x===COLS-1))continue;
+    if(x===PLAYER_START[0]&&y===PLAYER_START[1])continue;
+    SPAWN.push([x,y]);
+  }
+}
+/* ---------- 隨機迷宮：左右對稱、沒有死路、中間有怪物小屋、第 9 列兩側是隧道 ---------- */
+function genMaze(){
+  // 節點在 x=1,4,7,10,13、y=1,3,…,17；牆壁方塊寬 2 高 1。只產生左半邊再鏡射，所以左右對稱。
+  const NI=5,NJ=9,HI=2,HJ=4;                       // HI,HJ：小屋所在節點（中間）
+  const key=(i,j,t)=>i+','+j+t;                    // t='h' 往右連、't'='v' 往下連
+  const E=new Set();
+  const mir=(i,j,t)=>t==='h'?[3-i,j,'h']:[4-i,j,'v']; // 水平邊 (i→i+1) 的鏡像是 (3-i→4-i)；垂直邊 i→4-i
+  function has(i,j,t){return E.has(key(i,j,t));}
+  function add(i,j,t){E.add(key(i,j,t));const m=mir(i,j,t);E.add(key(m[0],m[1],m[2]));}
+  const isHouse=(i,j)=>i===HI&&j===HJ;
+  const ok=(i,j)=>i>=0&&i<NI&&j>=0&&j<NJ&&!isHouse(i,j);
+  // 某節點的所有可連的邊（上下左右）
+  function nbrs(i,j){
+    const r=[];
+    if(ok(i+1,j))r.push([i+1,j,i,j,'h']);
+    if(ok(i-1,j))r.push([i-1,j,i-1,j,'h']);
+    if(ok(i,j+1))r.push([i,j+1,i,j,'v']);
+    if(ok(i,j-1))r.push([i,j-1,i,j-1,'v']);
+    return r;                                      // [鄰居i,鄰居j,邊的i,邊的j,邊類型]
+  }
+  // 隨機深度優先，只在左半（i<=2）走
+  const seen=new Set([HI+','+HJ]);
+  const st=[[0,rnd(NJ)===HJ?0:rnd(NJ)]];
+  seen.add(st[0][0]+','+st[0][1]);
+  while(st.length){
+    const [ci,cj]=st[st.length-1];
+    const c=shuffle(nbrs(ci,cj).filter(n=>n[0]<=HI&&!seen.has(n[0]+','+n[1])));
+    if(!c.length){st.pop();continue;}
+    const n=c[0];seen.add(n[0]+','+n[1]);add(n[2],n[3],n[4]);st.push([n[0],n[1]]);
+  }
+  // 沒有死路：每個節點至少連 2 條（隧道旁的兩個節點算多 1 條）
+  const deg=(i,j)=>nbrs(i,j).filter(n=>has(n[2],n[3],n[4])).length+((j===4&&(i===0||i===4))?1:0)+((i===HI&&j===HJ-1)?1:0);
+  for(let pass=0;pass<30;pass++){
+    let changed=false;
+    for(let j=0;j<NJ;j++)for(let i=0;i<=HI;i++){
+      if(isHouse(i,j))continue;
+      if(deg(i,j)>=2)continue;
+      const c=shuffle(nbrs(i,j).filter(n=>!has(n[2],n[3],n[4])));
+      if(c.length){add(c[0][2],c[0][3],c[0][4]);changed=true;}
+    }
+    if(!changed)break;
+  }
+  // 多開幾條路，變成會繞圈的迷宮
+  for(let j=0;j<NJ;j++)for(let i=0;i<=HI;i++){
+    if(isHouse(i,j))continue;
+    for(const n of nbrs(i,j)){
+      if(n[0]>HI&&n[4]==='h')continue;
+      if(!has(n[2],n[3],n[4])&&Math.random()<.10)add(n[2],n[3],n[4]);
+    }
+  }
+  // 小屋與門：(7,7)↔小屋 永遠開著
+  // 畫成格子
+  const g=[];for(let y=0;y<ROWS;y++)g.push(new Array(COLS).fill('#'));
+  const X=i=>1+3*i,Y=j=>1+2*j;
+  for(let j=0;j<NJ;j++)for(let i=0;i<NI;i++){
+    if(isHouse(i,j))continue;
+    g[Y(j)][X(i)]='.';
+    if(has(i,j,'h')){g[Y(j)][X(i)+1]='.';g[Y(j)][X(i)+2]='.';}
+    if(has(i,j,'v')){g[Y(j)+1][X(i)]='.';}
+  }
+  // 小屋：第 9 列 x=6..8，門在 (7,8)
+  g[9][6]=g[9][7]=g[9][8]='.';g[8][7]='.';g[9][7]='.';
+  // 隧道
+  g[9][0]='.';g[9][COLS-1]='.';
+  return g.map(r=>r.join(''));
 }
 
 /* ---------- 小工具 ---------- */
@@ -149,8 +235,95 @@ function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 const rnd=n=>Math.floor(Math.random()*n);
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+buildMaze();
 
-const cfg=Object.assign({mode:'text',level:1,pinyin:false},lsGet('cc_cfg',{}));
+const cfg=Object.assign({mode:'text',level:1},lsGet('cc_cfg',{}));
+delete cfg.pinyin;
+
+/* ---------- 共用設定（和其他遊戲同一份 hanziGames.settings） ---------- */
+const SETTINGS_KEY = 'hanziGames.settings';
+const SET_OPTS = { script:['trad','simp'], lang:['es','en','zh'], phon:['pinyin','zhuyin','both','off'], rate:['slow','normal','fast'] };
+const RATE_VALUE = { slow:0.45, normal:0.65, fast:0.85 };
+function writeSettings(o){
+  try{
+    let cur = {};
+    try{ cur = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {}; }catch(e){}
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(Object.assign(cur, { v:1, script:o.script, lang:o.lang, phon:o.phon, rate:o.rate })));
+  }catch(e){}
+}
+function readSettings(){
+  const out = { v:1, script:'trad', lang:'es', phon:'pinyin', rate:'normal' };
+  let saved = null;
+  try{ saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null'); }catch(e){}
+  if (saved && typeof saved === 'object'){
+    Object.keys(SET_OPTS).forEach(k => { if (SET_OPTS[k].includes(saved[k])) out[k] = saved[k]; });
+  } else writeSettings(out);
+  return out;
+}
+const S = readSettings();
+
+/* ---------- 介面文字（西／英／純中文；中文再分繁簡） ---------- */
+const UI={
+ score:['Puntos','Score','分數','分数'],
+ stage:['Nivel','Level','關卡','关卡'],
+ ready:['¡Listo!','Ready!','準備！','准备！'],
+ stageBanner:['Nivel {n}','Level {n}','第 {n} 關','第 {n} 关'],
+ eat:['Come →','Eat →','吃掉：','吃掉：'],
+ listenQ:['Escucha y come el carácter','Listen and eat the character','聽聲音，吃掉正確的字','听声音，吃掉正确的字'],
+ mode:['Modo','Mode','模式','模式'],
+ modeTextEs:['Español → 中文','Español → 中文','西文 → 中文','西文 → 中文'],
+ modeTextEn:['English → 中文','English → 中文','英文 → 中文','英文 → 中文'],
+ modeListen:['Escuchar 🔊','Listen 🔊','聽 🔊','听 🔊'],
+ diff:['Dificultad','Difficulty','難度','难度'],
+ lv1:['Inicial','Beginner','初級','初级'],
+ lv2:['Medio','Intermediate','中級','中级'],
+ lv3:['Avanzado','Advanced','高級','高级'],
+ ch1:['1 carácter','1 character','1 個字','1 个字'],
+ ch2:['2 caracteres','2 characters','2 個字','2 个字'],
+ settings:['Ajustes','Settings','設定','设置'],
+ script:['Escritura','Characters','字體','字体'],
+ lang:['Idioma','Language','語言','语言'],
+ langZh:['Solo chino','Chinese only','純中文','纯中文'],
+ phon:['Lectura','Reading','讀音','读音'],
+ phonBoth:['Ambos','Both','兩者','两者'],
+ phonOff:['Oculto','Hidden','關閉','关闭'],
+ rate:['Voz','Voice','語速','语速'],
+ rateSlow:['Lenta','Slow','慢','慢'],
+ rateNormal:['Normal','Normal','中','中'],
+ rateFast:['Rápida','Fast','快','快'],
+ play:['Jugar','Play','開始','开始'],
+ howto:['Desliza (o usa las flechas) para moverte.<br>Come el carácter correcto. Un error = −50 puntos.<br>Si un monstruo te toca pierdes una vida ♥.<br>Come 力 para poder comer monstruos.','Swipe (or use the arrow keys) to move.<br>Eat the correct character. A mistake = −50 points.<br>If a monster touches you, you lose a life ♥.<br>Eat 力 to be able to eat monsters.','滑動螢幕（或用方向鍵）移動。<br>吃掉正確的字，吃錯扣 50 分。<br>被怪物碰到會少一條命 ♥。<br>吃到「力」就能反過來吃怪物。','滑动屏幕（或用方向键）移动。<br>吃掉正确的字，吃错扣 50 分。<br>被怪物碰到会少一条命 ♥。<br>吃到「力」就能反过来吃怪物。'],
+ listenOnlyNote:['En modo «Solo chino» se juega escuchando.','In “Chinese only” mode you play by listening.','純中文模式只能用「聽」來玩。','纯中文模式只能用「听」来玩。'],
+ best:['Mejor puntuación','Best score','最高分','最高分'],
+ over:['Fin del juego','Game over','遊戲結束','游戏结束'],
+ record:['¡Nuevo récord!','New record!','新紀錄！','新纪录！'],
+ review:['Para repasar','To review','要複習的字','要复习的字'],
+ noMiss:['¡Sin errores de caracteres! 👏','No character mistakes! 👏','一個字都沒選錯！👏','一个字都没选错！👏'],
+ again:['Jugar de nuevo','Play again','再玩一次','再玩一次'],
+ menu:['Menú','Menu','選單','菜单'],
+ pause:['Pausa','Paused','暫停','暂停'],
+ resume:['Continuar','Resume','繼續','继续'],
+ listenAria:['Escuchar','Listen','聽','听'],
+ copy:['© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有權利 / Todos los derechos reservados','© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有權利 / Todos los derechos reservados','© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有權利 / Todos los derechos reservados','© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有权利 / Todos los derechos reservados'],
+};
+const LI={es:0,en:1};
+function T(k,o){
+  const e=UI[k];let t=S.lang==='zh'?(S.script==='simp'?e[3]:e[2]):e[LI[S.lang]];
+  if(o)for(const q in o)t=t.replace('{'+q+'}',o[q]);
+  return t;
+}
+const disp=w=>S.script==='simp'?(w.sc||w.zh):w.zh;                     // 字怎麼顯示（繁／簡）
+const gloss=w=>S.lang==='en'?w.en:S.lang==='es'?w.es:'';               // 翻譯（純中文模式沒有）
+function reading(w){                                                    // 拼音／注音／兩者／關閉
+  return S.phon==='pinyin'?w.py:S.phon==='zhuyin'?w.zy:S.phon==='both'?w.py+' · '+w.zy:'';
+}
+const effMode=()=>S.lang==='zh'?'listen':cfg.mode;                      // 純中文時只能用聽的
+function applyLang(){
+  document.documentElement.lang=S.lang==='zh'?(S.script==='simp'?'zh-CN':'zh-TW'):S.lang;
+  $('tScore').textContent=T('score');$('tStage').textContent=T('stage');
+  $('speak').setAttribute('aria-label',T('listenAria'));
+  document.title=(S.script==='simp'?'吃字小精灵':'吃字小精靈')+' · Come Caracteres';
+}
 let best=lsGet('cc_best',0);
 
 /* ---------- 聲音 ---------- */
@@ -172,20 +345,16 @@ const sfx={
   power(){beep(520,.3,'triangle',.06,1040);},
   eatM(){beep(400,.2,'square',.04,900);}
 };
-let ttsWarned=false;
 function speak(t){
-  if(!('speechSynthesis' in window)){warnTTS();return;}
+  if(!('speechSynthesis' in window))return;                              // 找不到中文聲音的提示由 voicehint 負責
   try{
-    const u=new SpeechSynthesisUtterance(t);u.lang='zh-TW';u.rate=.85;
+    const u=new SpeechSynthesisUtterance(t);u.lang='zh-TW';u.rate=RATE_VALUE[S.rate]||.65;
     const vs=speechSynthesis.getVoices();
-    const v=vs.find(v=>/zh[-_]TW/i.test(v.lang))||vs.find(v=>/zh/i.test(v.lang));
-    if(v)u.voice=v; else warnTTS();
+    const ok=v=>{const l=String(v.lang||'').toLowerCase().replace(/_/g,'-');return !(l.indexOf('yue')===0||l.indexOf('zh-hk')===0);};
+    const v=vs.find(v=>/zh[-_]TW/i.test(v.lang))||vs.find(v=>/^(zh|cmn)/i.test(v.lang)&&ok(v));
+    if(v)u.voice=v;
     speechSynthesis.cancel();speechSynthesis.speak(u);
   }catch(e){}
-}
-function warnTTS(){
-  if(ttsWarned)return;ttsWarned=true;
-  setFb('Tu dispositivo no tiene voz en chino de Taiwán (zh-TW).','bad');
 }
 
 /* ---------- 實體移動（格子到格子，平滑） ---------- */
@@ -249,8 +418,10 @@ function addMonster(i,wait){
   G.monsters.push(m);
 }
 function startGame(){
+  buildMaze();
+  try{HGPlays.start('L'+cfg.level);}catch(e){}
   G={score:0,lives:3,stage:1,correct:0,combo:0,items:[],monsters:[],pops:[],mistakes:[],
-     q:null,lastZh:'',invincible:0,fright:0,freeze:1.4,banner:'¡Listo!',bannerT:1.4,time:0,flash:0,chomp:0};
+     q:null,lastZh:'',invincible:0,fright:0,freeze:1.4,banner:T('ready'),bannerT:1.4,time:0,flash:0,chomp:0};
   P=makeEnt(PLAYER_START[0],PLAYER_START[1],5.2);P.want=null;P.face=Math.PI;
   const n=monstersForStage(1);
   for(let i=0;i<n;i++)addMonster(i,1.5+i*3);
@@ -273,7 +444,7 @@ function pickDistractor(q){
 }
 function addItem(w,kind){
   const [x,y]=freeCell(5);
-  G.items.push({x,y,zh:w.zh,py:w.py,kind,t:kind==='power'?14:0,seed:Math.random()*6});
+  G.items.push({x,y,w,zh:w.zh,kind,t:kind==='power'?14:0,seed:Math.random()*6});
 }
 function newQuestion(){
   const pool=BANK.filter(w=>w.l===cfg.level);
@@ -283,15 +454,15 @@ function newQuestion(){
   addItem(w,'ok');
   for(let i=0;i<3;i++)addItem(pickDistractor(w),'bad');
   renderPrompt();
-  if(cfg.mode==='listen')speak(w.zh);
+  if(effMode()==='listen')speak(w.zh);
 }
 function renderPrompt(){
-  const q=G.q;
-  $('speak').classList.toggle('hide',cfg.mode!=='listen');
-  if(cfg.mode==='listen'){
-    $('ptext').innerHTML='<span class="es">Escucha y come el carácter</span>'+(cfg.pinyin?`<span class="py">${esc(q.py)}</span>`:'');
+  const q=G.q,r=reading(q),py=r?`<span class="py">${esc(r)}</span>`:'';
+  $('speak').classList.toggle('hide',effMode()!=='listen');
+  if(effMode()==='listen'){
+    $('ptext').innerHTML=`<span class="es">${esc(T('listenQ'))}</span>`+py;
   }else{
-    $('ptext').innerHTML=`Come → <span class="es">${esc(q.es)}</span>`+(cfg.pinyin?`<span class="py">${esc(q.py)}</span>`:'');
+    $('ptext').innerHTML=`${esc(T('eat'))} <span class="es">${esc(gloss(q))}</span>`+py;
   }
 }
 let fbTimer=0;
@@ -315,20 +486,21 @@ function eatItem(it){
     const pts=100+Math.min(G.combo-1,9)*10;
     G.score+=pts;G.correct++;G.chomp=.3;
     pop(it.x,it.y,'+'+pts,'#6b8e6b');sfx.ok();
-    setFb(`✓ ${G.q.zh}  ${G.q.py}  =  ${G.q.es}`,'ok');
-    if(G.correct%3===0&&!G.items.some(i=>i.kind==='power'))addItem({zh:'力',py:'lì'},'power');
+    setFb(`✓ ${disp(G.q)}  ${reading(G.q)}${gloss(G.q)?'  =  '+gloss(G.q):''}`,'ok');
+    if(G.correct%3===0&&!G.items.some(i=>i.kind==='power'))addItem(POWER,'power');
     if(G.correct%8===0){
-      G.stage++;G.banner='Nivel '+G.stage;G.bannerT=1.6;
+      G.stage++;G.banner=T('stageBanner',{n:G.stage});G.bannerT=1.6;
       if(G.monsters.length<monstersForStage(G.stage))addMonster(G.monsters.length,2);
+      buildMaze();resetPositions();G.items=[];G.freeze=1.3;G.invincible=1.6;
     }
     updateHud();newQuestion();
   }else if(it.kind==='bad'){
     G.combo=0;G.score=Math.max(0,G.score-50);G.flash=.35;
     pop(it.x,it.y,'-50','#b5605a');sfx.bad();
-    setFb(`✗ ${it.zh}  ${it.py}`,'bad');
+    setFb(`✗ ${disp(it.w)}  ${reading(it.w)}`,'bad');
     if(!G.q.missed){
       G.q.missed=true;
-      if(!G.mistakes.some(m=>m.zh===G.q.zh))G.mistakes.push({zh:G.q.zh,py:G.q.py,es:G.q.es});
+      if(!G.mistakes.some(m=>m.zh===G.q.zh))G.mistakes.push(G.q);
     }
     addItem(pickDistractor(G.q),'bad');
     updateHud();
@@ -352,6 +524,7 @@ function hitPlayer(){
 }
 function gameOver(){
   state='over';
+  try{HGPlays.end({score:G.score});}catch(e){}
   saveScore(G.score);
   showOver();
 }
@@ -443,10 +616,10 @@ function drawItem(it){
   rr(x,y,s,s,s*.22);
   ctx.fillStyle=power?'#efe3c2':'#ffffff';ctx.fill();
   ctx.strokeStyle=power?'#b08d3c':'#8a8478';ctx.lineWidth=power?2:1.2;ctx.stroke();
-  const n=[...it.zh].length;
+  const txt=disp(it.w),n=[...txt].length;
   ctx.fillStyle='#3b3935';ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.font=`${Math.floor(cell*(n===1?.7:.42))}px ${FONT}`;
-  ctx.fillText(it.zh,(it.x+.5)*cell,(it.y+.54)*cell);
+  ctx.fillText(txt,(it.x+.5)*cell,(it.y+.54)*cell);
   if(power)ctx.restore();
   ctx.globalAlpha=1;
 }
@@ -703,30 +876,38 @@ function draw(){
 }
 
 /* ---------- 選單與結算 ---------- */
+function segRow(lab,id,opts,cur,small){
+  return `<div class="lab">${lab}</div><div class="row${small?' sm':''}">${opts.map(([v,t])=>`<button class="opt ${String(cur)===String(v)?'on':''}" data-set="${id}" data-v="${v}">${t}</button>`).join('')}</div>`;
+}
 function showMenu(){
   state='menu';
   const o=$('ov');o.classList.add('show');
+  const zh=S.lang==='zh';
+  const modeRow=zh
+    ?`<div class="lab">${T('mode')}</div><div class="row"><button class="opt on" data-set="mode" data-v="listen">${T('modeListen')}</button></div><p style="margin:0">${T('listenOnlyNote')}</p>`
+    :segRow(T('mode'),'mode',[['text',T(S.lang==='en'?'modeTextEn':'modeTextEs')],['listen',T('modeListen')]],cfg.mode);
+  const lvRow=`<div class="lab">${T('diff')}</div><div class="row">`+[1,2,3].map(n=>
+    `<button class="opt ${cfg.level===n?'on':''}" data-set="level" data-v="${n}">${T('lv'+n)}<br><small>${T(n===1?'ch1':'ch2')}</small></button>`).join('')+`</div>`;
   o.innerHTML=`<div class="card">
-    <h1>吃字小精靈</h1><h2>Come Caracteres</h2>
-    <div class="lab">Modo</div>
-    <div class="row">
-      <button class="opt ${cfg.mode==='text'?'on':''}" data-mode="text">Español → 中文</button>
-      <button class="opt ${cfg.mode==='listen'?'on':''}" data-mode="listen">Escuchar 🔊</button>
-    </div>
-    <div class="lab">Nivel</div>
-    <div class="row">
-      <button class="opt ${cfg.level===1?'on':''}" data-level="1">Inicial<br><small>1 carácter</small></button>
-      <button class="opt ${cfg.level===2?'on':''}" data-level="2">Medio<br><small>2 caracteres</small></button>
-      <button class="opt ${cfg.level===3?'on':''}" data-level="3">Avanzado<br><small>2 caracteres</small></button>
-    </div>
-    <label class="chk"><input type="checkbox" id="pyc" ${cfg.pinyin?'checked':''}> Mostrar pinyin como pista</label>
-    <button class="main" id="go">Jugar</button>
-    <p>Desliza (o usa las flechas) para moverte.<br>Come el carácter correcto. Un error = −50 puntos.<br>Si un monstruo te toca pierdes una vida ♥.<br>Come 力 para poder comer monstruos.</p>
-    <p>Mejor puntuación: <b style="color:var(--ink)">${best}</b></p>
+    <h1>${S.script==='simp'?'吃字小精灵':'吃字小精靈'}</h1><h2>Come Caracteres</h2>
+    ${modeRow}
+    ${lvRow}
+    ${segRow(T('script'),'script',[['trad','繁體'],['simp','简体']],S.script,1)}
+    ${segRow(T('lang'),'lang',[['es','Español'],['en','English'],['zh',T('langZh')]],S.lang,1)}
+    ${segRow(T('phon'),'phon',[['pinyin','Pinyin'],['zhuyin','注音'],['both',T('phonBoth')],['off',T('phonOff')]],S.phon,1)}
+    ${segRow(T('rate'),'rate',[['slow',T('rateSlow')],['normal',T('rateNormal')],['fast',T('rateFast')]],S.rate,1)}
+    <button class="main" id="go">${T('play')}</button>
+    <p>${T('howto')}</p>
+    <p>${T('best')}: <b style="color:var(--ink)">${best}</b></p>
+    <div class="copy">${esc(T('copy'))}</div>
   </div>`;
-  o.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{cfg.mode=b.dataset.mode;lsSet('cc_cfg',cfg);showMenu();});
-  o.querySelectorAll('[data-level]').forEach(b=>b.onclick=()=>{cfg.level=+b.dataset.level;lsSet('cc_cfg',cfg);showMenu();});
-  $('pyc').onchange=e=>{cfg.pinyin=e.target.checked;lsSet('cc_cfg',cfg);};
+  o.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.set,v=b.dataset.v;
+    if(k==='mode'){cfg.mode=v;lsSet('cc_cfg',cfg);}
+    else if(k==='level'){cfg.level=+v;lsSet('cc_cfg',cfg);}
+    else{S[k]=v;writeSettings(S);applyLang();}
+    showMenu();
+  });
   $('go').onclick=()=>{
     speechSynthesis&&speechSynthesis.getVoices&&speechSynthesis.getVoices();
     startGame();
@@ -735,15 +916,15 @@ function showMenu(){
 function showOver(){
   const o=$('ov');o.classList.add('show');
   const miss=G.mistakes.length
-    ?`<div class="lab">Para repasar</div><div class="miss">${G.mistakes.map(m=>`<div><span class="zh">${esc(m.zh)}</span><span class="py">${esc(m.py)}</span>${esc(m.es)}</div>`).join('')}</div>`
-    :`<p>¡Sin errores de caracteres! 👏</p>`;
+    ?`<div class="lab">${T('review')}</div><div class="miss">${G.mistakes.map(m=>`<div><span class="zh">${esc(disp(m))}</span><span class="py">${esc(reading(m))}</span>${esc(gloss(m))}</div>`).join('')}</div>`
+    :`<p>${T('noMiss')}</p>`;
   o.innerHTML=`<div class="card">
-    <h2>Fin del juego</h2>
+    <h2>${T('over')}</h2>
     <div class="big">${G.score}</div>
-    <p>Mejor puntuación: ${best}${G.score>=best&&G.score>0?' · ¡Nuevo récord!':''}</p>
+    <p>${T('best')}: ${best}${G.score>=best&&G.score>0?' · '+T('record'):''}</p>
     ${miss}
-    <button class="main" id="again">Jugar de nuevo</button>
-    <button class="sub" id="menu">Menú</button>
+    <button class="main" id="again">${T('again')}</button>
+    <button class="sub" id="menu">${T('menu')}</button>
   </div>`;
   $('again').onclick=startGame;
   $('menu').onclick=showMenu;
@@ -751,7 +932,7 @@ function showOver(){
 function showPause(){
   state='pause';
   const o=$('ov');o.classList.add('show');
-  o.innerHTML=`<div class="card"><h1>Pausa</h1><button class="main" id="resume">Continuar</button><button class="sub" id="menu">Menú</button></div>`;
+  o.innerHTML=`<div class="card"><h1>${T('pause')}</h1><button class="main" id="resume">${T('resume')}</button><button class="sub" id="menu">${T('menu')}</button></div>`;
   $('resume').onclick=()=>{state='play';o.classList.remove('show');};
   $('menu').onclick=showMenu;
 }
@@ -789,7 +970,186 @@ function frame(t){
   draw();
   requestAnimationFrame(frame);
 }
-resize();showMenu();requestAnimationFrame(frame);
+applyLang();resize();showMenu();requestAnimationFrame(frame);
+</script>
+<script>
+/* ===== 找不到中文聲音的提示（每天一分鐘遊戲統一做法）===== */
+(function(){
+  var shown=false;
+  function cfg(){ var s={}; try{ s=JSON.parse(localStorage.getItem('hanziGames.settings')||'{}')||{}; }catch(e){} return s; }
+  function isMandarin(v){ var l=String((v&&v.lang)||'').toLowerCase().replace(/_/g,'-'); if(l.indexOf('yue')===0||l.indexOf('zh-hk')===0) return false; return l==='zh'||l.indexOf('zh-')===0||l.indexOf('cmn')===0; }
+  var T={
+    none:{ zh:['這個裝置找不到中文（台灣）語音，聽不到念的內容。請到手機設定安裝「中文（台灣）」語音，或換一個裝置。','这个装置找不到中文（台湾）语音，听不到念的内容。请到手机设置安装「中文（台湾）」语音，或换一个装置。'],
+           es:'No se encontró una voz de chino (Taiwán) en este dispositivo, así que no se oirá el audio. Instala la voz «chino (Taiwán)» en los ajustes del móvil o usa otro dispositivo.',
+           en:'No Chinese (Taiwan) voice was found on this device, so you won’t hear the audio. Install the “Chinese (Taiwan)” voice in your phone settings, or use another device.' },
+    nosynth:{ zh:['這個瀏覽器不支援語音，聽不到念的內容。請換一個瀏覽器（例如 Chrome、Safari）。','这个浏览器不支持语音，听不到念的内容。请换一个浏览器（例如 Chrome、Safari）。'],
+           es:'Este navegador no admite voz, así que no se oirá el audio. Usa otro navegador (por ejemplo Chrome o Safari).',
+           en:'This browser does not support speech, so you won’t hear the audio. Try another browser (for example Chrome or Safari).' }
+  };
+  function show(kind){
+    if(shown||document.getElementById('hgVoiceHint')) return; shown=true;
+    var s=cfg(), lang=s.lang||'es', simp=s.script==='simp', t=T[kind];
+    var st=document.createElement('style');
+    st.textContent='#hgVoiceHint{position:fixed;left:50%;top:8px;transform:translateX(-50%);z-index:2147482999;width:min(94vw,520px);box-sizing:border-box;display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:12px;background:#fff6dc;border:1px solid #d8b24a;color:#5b4410;font:13px/1.4 system-ui,-apple-system,"Noto Sans TC","PingFang TC",sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.25)}#hgVoiceHint .m{flex:1}#hgVoiceHint .m small{display:block;font-size:11px;opacity:.85;margin-top:2px}#hgVoiceHint button{border:0;background:transparent;color:inherit;font-size:16px;line-height:1;padding:0 2px;cursor:pointer}';
+    document.head.appendChild(st);
+    var d=document.createElement('div'); d.id='hgVoiceHint'; d.setAttribute('role','status');
+    var m=document.createElement('div'); m.className='m';
+    var zh=document.createElement('div'); zh.textContent = simp ? t.zh[1] : t.zh[0]; m.appendChild(zh);
+    if(lang!=='zh'){ var sm=document.createElement('small'); sm.textContent = lang==='en' ? t.en : t.es; m.appendChild(sm); }
+    var x=document.createElement('button'); x.type='button'; x.textContent='✕'; x.setAttribute('aria-label','Close');
+    x.addEventListener('click',function(){ d.remove(); });
+    d.appendChild(m); d.appendChild(x); document.body.appendChild(d);
+  }
+  function check(){
+    try{
+      if(!window.speechSynthesis){ show('nosynth'); return; }
+      var vs=window.speechSynthesis.getVoices()||[];
+      if(vs.length && !vs.some(isMandarin)) show('none');   // 清單是空的時（有些手機一開始就是空的）先不判斷
+    }catch(e){}
+  }
+  function start(){
+    check();
+    try{ window.speechSynthesis.addEventListener('voiceschanged', check); }catch(e){}
+    setTimeout(check,1500); setTimeout(check,4000);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
+/* ===== /找不到中文聲音的提示 ===== */
+</script>
+<script>
+/* ===== 一鍵靜音（只關音樂和音效，不影響念字的語音）— 每天一分鐘遊戲統一做法 ===== */
+(function(){
+  var KEY='hg.mute.come_caracteres', MOUNT='', muted=false, masters=[];
+  try{ muted = localStorage.getItem(KEY)==='1'; }catch(e){}
+  /* 讓這個遊戲建立的所有 Web Audio 聲音，都先經過一個總音量；靜音＝總音量 0 */
+  try{
+    var BP = window.BaseAudioContext ? window.BaseAudioContext.prototype : (window.AudioContext||window.webkitAudioContext).prototype;
+    var desc = Object.getOwnPropertyDescriptor(BP,'destination');
+    if(desc && desc.get){
+      Object.defineProperty(BP,'destination',{configurable:true,get:function(){
+        var real = desc.get.call(this);
+        if(!this.__hgMaster){
+          try{ var g=this.createGain(); g.gain.value = muted?0:1; g.connect(real); this.__hgMaster=g; masters.push(g); }
+          catch(e){ return real; }
+        }
+        return this.__hgMaster;
+      }});
+    }
+  }catch(e){}
+  /* 備用的 <audio> 播放（例如 iPhone 的 Chrome）也一起靜音 */
+  try{
+    var op = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function(){ this.muted = muted; return op.apply(this, arguments); };
+  }catch(e){}
+  function apply(){ masters.forEach(function(g){ try{ g.gain.setValueAtTime(muted?0:1, g.context.currentTime); }catch(e){ g.gain.value = muted?0:1; } }); }
+  function build(){
+    if(document.getElementById('hgMute')) return;
+    var st=document.createElement('style');
+    st.textContent='#hgMute{position:fixed;left:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:2147483000;width:40px;height:40px;border-radius:50%;border:1px solid rgba(0,0,0,.28);background:rgba(255,255,255,.88);color:#222;font-size:19px;line-height:1;padding:0;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.25);touch-action:manipulation;-webkit-tap-highlight-color:transparent}#hgMute:active{transform:scale(.94)}#hgMute.st{position:static;flex:0 0 40px;margin:0 0 0 8px}';
+    document.head.appendChild(st);
+    var b=document.createElement('button'); b.type='button'; b.id='hgMute';
+    function paint(){ b.textContent = muted?'🔇':'🔊'; b.setAttribute('aria-pressed', muted?'true':'false');
+      b.title = b.ariaLabel = muted ? '開啟音樂和音效 · Activar música y efectos' : '靜音（音樂和音效）· Silenciar música y efectos'; apply(); }
+    b.addEventListener('click',function(e){ e.stopPropagation(); muted=!muted; try{ localStorage.setItem(KEY, muted?'1':'0'); }catch(err){} paint(); });
+    b.addEventListener('pointerdown',function(e){ e.stopPropagation(); });
+    paint();
+    var anchor = MOUNT && document.querySelector(MOUNT);
+    if(anchor && anchor.parentNode){ b.className='st'; anchor.parentNode.insertBefore(b, anchor.nextSibling); } else document.body.appendChild(b);
+  }
+  if(document.body) build(); else document.addEventListener('DOMContentLoaded', build);
+})();
+/* ===== /一鍵靜音 ===== */
+</script>
+<script>
+/* ===== 遊玩紀錄（hgPlays）— 每個遊戲共用，貼在 </body> 前 =====
+   用法：
+     HGPlays.visit();                       // 頁面打開時（本檔會自動呼叫一次）
+     HGPlays.start('easy', '小明');         // 真的開始玩一局（關卡／難度、暱稱都可省略）
+     HGPlays.end({score: 120, name: '小明'}); // 這一局正常結算（score、name 可省略）
+   沒呼叫 end 的那一局，後台就會顯示「沒玩完」。
+   寫到 memorma 專案：plays（每局）、visits（每台裝置每天每遊戲一筆）。
+   任何錯誤都靜默，不影響遊戲。 */
+(function () {
+  var GAME = 'come_caracteres';          // ← 每個遊戲改成自己的代號（英文小寫、底線）
+  var NAME_GETTER = null;                // ← 可選：function(){ return 目前暱稱或'' }
+  var CFG = { apiKey: 'AIzaSyC_YSDn2OH6_GKKwCq0d8QFNl3fYXzTC60', authDomain: 'memorma-24dab.firebaseapp.com',
+              projectId: 'memorma-24dab', appId: '1:806709458465:web:f0d12acb2f911f2f165560' };
+  var V = '10.12.2', CDN = 'https://www.gstatic.com/firebasejs/' + V + '/';
+  var cur = null, readyP = null, lib = null;
+
+  function gid() { try { return (HG.gameFn ? HG.gameFn() : GAME) || GAME; } catch (e) { return GAME; } } // taiwan-life 這類共用引擎的遊戲可改寫 HGPlays.gameFn
+  function day() { // 以台灣時間（UTC+8）算「哪一天」，方便老師對帳
+    var d = new Date(Date.now() + 8 * 3600e3);
+    return d.toISOString().slice(0, 10);
+  }
+  function ls(k, v) {
+    try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {}
+    return null;
+  }
+  function ready() {
+    if (readyP) return readyP;
+    readyP = (async function () {
+      var A = await import(CDN + 'firebase-app.js');
+      var Au = await import(CDN + 'firebase-auth.js');
+      var F = await import(CDN + 'firebase-firestore.js');
+      var app = A.initializeApp(CFG, 'hgplays');
+      var auth = Au.getAuth(app);
+      if (!auth.currentUser) await Au.signInAnonymously(auth);
+      else await auth.authStateReady();
+      lib = { F: F, db: F.getFirestore(app), uid: auth.currentUser.uid };
+      return lib;
+    })().catch(function () { readyP = null; return null; });
+    return readyP;
+  }
+  function getName(n) {
+    if (n) return String(n).slice(0, 36);
+    try { if (NAME_GETTER) return String(NAME_GETTER() || '').slice(0, 36); } catch (e) {}
+    return '';
+  }
+
+  var HG = window.HGPlays = {
+    /* 每台裝置每天、每個遊戲只算一次訪客 */
+    visit: function () {
+      var g = gid(), d = day(), key = 'hg.visit.' + g;
+      if (ls(key) === d) return;
+      ready().then(function (L) {
+        if (!L) return;
+        var id = d + '_' + g + '_' + L.uid;
+        return L.F.setDoc(L.F.doc(L.db, 'visits', id), { game: g, day: d, uid: L.uid, at: L.F.serverTimestamp() })
+          .then(function () { ls(key, d); });
+      }).catch(function () {});
+    },
+    /* 真的開始玩一局 */
+    start: function (level, name) {
+      var mine = cur = { id: null, level: level == null ? '' : String(level).slice(0, 30) };
+      ready().then(function (L) {
+        if (!L) return;
+        var data = { game: gid(), level: mine.level, uid: L.uid, name: getName(name), day: day(),
+                     startedAt: L.F.serverTimestamp(), done: false };
+        return L.F.addDoc(L.F.collection(L.db, 'plays'), data).then(function (ref) {
+          mine.id = ref.id; if (mine.pendingEnd) HG._finish(mine, mine.pendingEnd);
+        });
+      }).catch(function () {});
+    },
+    /* 這一局正常結算 */
+    end: function (info) {
+      var mine = cur; if (!mine || mine.ended) return; mine.ended = true; info = info || {};
+      if (mine.id) HG._finish(mine, info); else mine.pendingEnd = info; // 開始的寫入還沒回來就先記著
+    },
+    _finish: function (mine, info) {
+      ready().then(function (L) {
+        if (!L || !mine.id) return;
+        var u = { done: true, endedAt: L.F.serverTimestamp(),
+                  secs: Math.max(0, Math.min(86400, Math.round(Number(info.secs != null ? info.secs : (Date.now() - (mine.t0 || Date.now())) / 1000) || 0))) };
+        var s = Number(info.score); if (isFinite(s) && info.score != null) u.score = Math.max(-1e9, Math.min(1e9, Math.round(s)));
+        var n = getName(info.name); if (n) u.name = n;
+        return L.F.updateDoc(L.F.doc(L.db, 'plays', mine.id), u);
+      }).catch(function () {});
+    }
+  };
+  var _s = HG.start; HG.start = function (l, n) { _s(l, n); if (cur) cur.t0 = Date.now(); };
+  setTimeout(function () { HG.visit(); }, 2500);   // 等遊戲載完再記訪客
+})();
 </script>
 </body>
 </html>
