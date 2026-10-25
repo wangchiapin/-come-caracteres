@@ -29,6 +29,15 @@ canvas{display:block;background:var(--paper);border-radius:8px}
 #ov.show{display:flex}
 .card{width:100%;max-width:360px;text-align:center;margin:auto;padding-bottom:50px}
 .row.sm button{padding:7px 4px;font-size:13px}
+.lbbox{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-height:60px;text-align:left}
+.lbrow{display:flex;gap:8px;padding:8px 4px;border-bottom:1px solid var(--line);font-size:16px;align-items:center}
+.lbrow:last-child{border-bottom:none}
+.lbrow .r{width:24px;color:var(--sub)} .lbrow .n{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .lbrow .s{font-weight:600}
+.lbrow.me{background:#efe3c2;border-radius:6px}
+.lbsub{margin:10px 0}
+input.nm{font:inherit;font-size:15px;padding:9px;border:1px solid var(--line);border-radius:10px;width:100%;background:#fff;text-align:center;user-select:text;-webkit-user-select:text;touch-action:manipulation;margin-bottom:8px;color:var(--ink)}
+.lbsub .opt{width:100%}
+.lbs{font-size:13px;color:var(--sub);min-height:18px;margin-top:6px}
 .copy{font-size:10px;color:rgba(120,120,120,.85);margin-top:8px;line-height:1.4}
 .card h1{margin:0 0 2px;font-size:30px;font-weight:600;letter-spacing:2px}
 .card h2{margin:0 0 14px;font-size:15px;font-weight:400;color:var(--sub)}
@@ -304,6 +313,19 @@ const UI={
  pause:['Pausa','Paused','暫停','暂停'],
  resume:['Continuar','Resume','繼續','继续'],
  listenAria:['Escuchar','Listen','聽','听'],
+ board:['Ranking','Leaderboard','排行榜','排行榜'],
+ nameLab:['Tu nombre','Your name','暱稱','暱称'],
+ namePh:['Escribe tu nombre (máx. 14)','Enter your name (max 14)','輸入暱稱（最多 14 字）','输入暱称（最多 14 字）'],
+ submit:['Subir puntuación','Submit score','上傳分數','上传分数'],
+ submitted:['✓ Subido al ranking','✓ Submitted to the leaderboard','✓ 已上傳到排行榜','✓ 已上传到排行榜'],
+ submitFail:['No se pudo subir. Inténtalo de nuevo.','Could not submit. Please try again.','上傳失敗，請再試一次','上传失败，请再试一次'],
+ needName:['Escribe tu nombre primero.','Enter a name first.','請先輸入暱稱','请先输入暱称'],
+ sending:['Subiendo…','Submitting…','上傳中…','上传中…'],
+ loading:['Cargando…','Loading…','讀取中…','读取中…'],
+ boardFail:['No se pudo cargar el ranking.','Could not load the leaderboard.','排行榜讀取失敗','排行榜读取失败'],
+ boardEmpty:['Aún no hay puntuaciones.','No scores yet.','還沒有人上榜','还没有人上榜'],
+ back:['Volver','Back','返回','返回'],
+ you:['(tú)','(you)','（你）','（你）'],
  copy:['© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有權利 / Todos los derechos reservados','© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有權利 / Todos los derechos reservados','© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有權利 / Todos los derechos reservados','© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有权利 / Todos los derechos reservados'],
 };
 const LI={es:0,en:1};
@@ -419,7 +441,7 @@ function addMonster(i,wait){
 }
 function startGame(){
   buildMaze();
-  try{HGPlays.start('L'+cfg.level);}catch(e){}
+  try{HGPlays.start('L'+cfg.level,getName());}catch(e){}
   G={score:0,lives:3,stage:1,correct:0,combo:0,items:[],monsters:[],pops:[],mistakes:[],
      q:null,lastZh:'',invincible:0,fright:0,freeze:1.4,banner:T('ready'),bannerT:1.4,time:0,flash:0,chomp:0};
   P=makeEnt(PLAYER_START[0],PLAYER_START[1],5.2);P.want=null;P.face=Math.PI;
@@ -524,10 +546,62 @@ function hitPlayer(){
 }
 function gameOver(){
   state='over';
-  try{HGPlays.end({score:G.score});}catch(e){}
+  try{HGPlays.end({score:G.score,name:getName()});}catch(e){}
   saveScore(G.score);
   showOver();
 }
+
+/* ---------- Firebase 排行榜（memorma-24dab；文件 id＝匿名 uid；前 10 名） ---------- */
+const LB_COL='comeCaracteresLeaderboard';
+const FB_CFG={apiKey:'AIzaSyC_YSDn2OH6_GKKwCq0d8QFNl3fYXzTC60',authDomain:'memorma-24dab.firebaseapp.com',projectId:'memorma-24dab',appId:'1:806709458465:web:f0d12acb2f911f2f165560'};
+let fbP=null;
+function fbInit(){
+  if(fbP)return fbP;
+  const CDN='https://www.gstatic.com/firebasejs/10.12.2/';
+  fbP=(async()=>{
+    const A=await import(CDN+'firebase-app.js'),Au=await import(CDN+'firebase-auth.js'),F=await import(CDN+'firebase-firestore.js');
+    const app=A.initializeApp(FB_CFG,'cclb');
+    const auth=Au.getAuth(app);
+    let user=auth.currentUser;
+    if(!user){const c=await Au.signInAnonymously(auth);user=c&&c.user||auth.currentUser;}
+    return {F,db:F.getFirestore(app),uid:user.uid};
+  })().catch(e=>{fbP=null;return null;});
+  return fbP;
+}
+const NAME_KEY='cc_name';
+const getName=()=>String(lsGet(NAME_KEY,'')||'').trim().slice(0,14);
+async function submitScore(name,score){
+  const L=await fbInit();if(!L)throw new Error('no firebase');
+  const ref=L.F.doc(L.db,LB_COL,L.uid);
+  const snap=await L.F.getDoc(ref);
+  if(snap.exists()){
+    const old=snap.data();
+    if(old.score>=score){                       // 不比舊的高：分數維持，只更新暱稱
+      if(old.name===name)return 'kept';
+      score=old.score;
+    }
+  }
+  await L.F.setDoc(ref,{name,score,updatedAt:L.F.serverTimestamp()});
+  return 'saved';
+}
+async function fetchTop(){
+  const L=await fbInit();if(!L)throw new Error('no firebase');
+  const q=L.F.query(L.F.collection(L.db,LB_COL),L.F.orderBy('score','desc'),L.F.limit(10));
+  const snap=await L.F.getDocs(q);
+  const rows=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
+  rows.sort((a,b)=>b.score-a.score);
+  return {rows:rows.slice(0,10),uid:L.uid};
+}
+function showBoard(back){
+  const o=$('ov');o.classList.add('show');
+  o.innerHTML=`<div class="card"><h1>🏆 ${T('board')}</h1><div id="lbBody" class="lbbox"><p>${T('loading')}</p></div><button class="sub" id="lbBack">${T('back')}</button></div>`;
+  $('lbBack').onclick=back;
+  fetchTop().then(({rows,uid})=>{
+    const el=$('lbBody');if(!el)return;
+    el.innerHTML=rows.length?rows.map((r,i)=>`<div class="lbrow${r.id===uid?' me':''}"><span class="r">${i+1}</span><span class="n">${esc(r.name||'')}${r.id===uid?' '+T('you'):''}</span><span class="s">${r.score|0}</span></div>`).join(''):`<p>${T('boardEmpty')}</p>`;
+  }).catch(()=>{const el=$('lbBody');if(el)el.innerHTML=`<p>${T('boardFail')}</p>`;});
+}
+
 function saveScore(s){
   if(s>best){best=s;lsSet('cc_best',best);}
   // TODO（之後接 Firebase 排行榜）：在這裡把 s 寫進 leaderboard collection
@@ -897,6 +971,7 @@ function showMenu(){
     ${segRow(T('phon'),'phon',[['pinyin','Pinyin'],['zhuyin','注音'],['both',T('phonBoth')],['off',T('phonOff')]],S.phon,1)}
     ${segRow(T('rate'),'rate',[['slow',T('rateSlow')],['normal',T('rateNormal')],['fast',T('rateFast')]],S.rate,1)}
     <button class="main" id="go">${T('play')}</button>
+    <button class="sub" id="lb">🏆 ${T('board')}</button>
     <p>${T('howto')}</p>
     <p>${T('best')}: <b style="color:var(--ink)">${best}</b></p>
     <div class="copy">${esc(T('copy'))}</div>
@@ -908,6 +983,7 @@ function showMenu(){
     else{S[k]=v;writeSettings(S);applyLang();}
     showMenu();
   });
+  $('lb').onclick=()=>showBoard(showMenu);
   $('go').onclick=()=>{
     speechSynthesis&&speechSynthesis.getVoices&&speechSynthesis.getVoices();
     startGame();
@@ -922,24 +998,41 @@ function showOver(){
     <h2>${T('over')}</h2>
     <div class="big">${G.score}</div>
     <p>${T('best')}: ${best}${G.score>=best&&G.score>0?' · '+T('record'):''}</p>
+    ${G.score>0?`<div class="lbsub"><input class="nm" id="nm" maxlength="14" placeholder="${esc(T('namePh'))}" value="${esc(getName())}"><button class="opt" id="sub">${T('submit')}</button><div id="lbs" class="lbs"></div></div>`:''}
     ${miss}
     <button class="main" id="again">${T('again')}</button>
+    <button class="sub" id="lb">🏆 ${T('board')}</button>
     <button class="sub" id="menu">${T('menu')}</button>
   </div>`;
   $('again').onclick=startGame;
+  $('lb').onclick=()=>showBoard(showOver);
   $('menu').onclick=showMenu;
+  if(G.score>0){
+    const send=async()=>{
+      const nm=$('nm').value.trim().slice(0,14),st=$('lbs');
+      if(!nm){st.textContent=T('needName');return;}
+      lsSet(NAME_KEY,nm);st.textContent=T('sending');$('sub').disabled=true;
+      try{await submitScore(nm,G.score);if($('lbs'))$('lbs').textContent=T('submitted');}
+      catch(e){if($('lbs'))$('lbs').textContent=T('submitFail');}
+      if($('sub'))$('sub').disabled=false;
+    };
+    $('sub').onclick=send;
+    if(getName()&&!G.lbDone){G.lbDone=true;send();}   // 有存過暱稱就自動上傳
+  }
 }
 function showPause(){
   state='pause';
   const o=$('ov');o.classList.add('show');
-  o.innerHTML=`<div class="card"><h1>${T('pause')}</h1><button class="main" id="resume">${T('resume')}</button><button class="sub" id="menu">${T('menu')}</button></div>`;
+  o.innerHTML=`<div class="card"><h1>${T('pause')}</h1><button class="main" id="resume">${T('resume')}</button><button class="sub" id="lb">🏆 ${T('board')}</button><button class="sub" id="menu">${T('menu')}</button></div>`;
   $('resume').onclick=()=>{state='play';o.classList.remove('show');};
+  $('lb').onclick=()=>showBoard(showPause);
   $('menu').onclick=showMenu;
 }
 
 /* ---------- 操作：鍵盤與滑動 ---------- */
 const KEYS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1],a:[-1,0],d:[1,0],w:[0,-1],s:[0,1]};
 window.addEventListener('keydown',e=>{
+  if(e.target&&e.target.tagName==='INPUT')return;
   const d=KEYS[e.key];
   if(d){e.preventDefault();setWant(d[0],d[1]);}
   else if(e.key==='p'&&state==='play')showPause();
