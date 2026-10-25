@@ -2,7 +2,7 @@
 <html lang="es" data-hg-nocopy>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>吃字小精靈 · Come Caracteres</title>
 <style>
 html{color-scheme:light}
@@ -28,6 +28,7 @@ canvas{display:block;background:var(--paper);border-radius:8px}
 #ov{position:absolute;inset:0;background:rgba(245,242,234,.94);display:none;justify-content:center;padding:20px;z-index:5;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 #ov.show{display:flex}
 .card{width:100%;max-width:360px;text-align:center;margin:auto;padding-bottom:50px}
+.row2{display:flex;gap:8px}.row2 .sub{flex:1}
 .row.sm button{padding:7px 4px;font-size:13px}
 .lbbox{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-height:60px;text-align:left}
 .lbrow{display:flex;gap:8px;padding:8px 4px;border-bottom:1px solid var(--line);font-size:16px;align-items:center}
@@ -39,6 +40,10 @@ input.nm{font:inherit;font-size:15px;padding:9px;border:1px solid var(--line);bo
 .lbsub .opt{width:100%}
 .lbs{font-size:13px;color:var(--sub);min-height:18px;margin-top:6px}
 .copy{font-size:10px;color:rgba(120,120,120,.85);margin-top:8px;line-height:1.4}
+.brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px}
+.brand h1{margin:0}.brand h2{margin:2px 0 0}
+.logo{width:78px;height:78px;flex:none;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 .card h1{margin:0 0 2px;font-size:30px;font-weight:600;letter-spacing:2px}
 .card h2{margin:0 0 14px;font-size:15px;font-weight:400;color:var(--sub)}
 .card p{font-size:13px;color:var(--sub);line-height:1.6;margin:10px 0}
@@ -79,72 +84,640 @@ label.chk{display:flex;align-items:center;justify-content:center;gap:8px;font-si
    ===================================================== */
 
 /* ---------- 字庫（zh 繁體、sc 簡體、py 拼音、zy 注音、es 西文、en 英文；之後可換成「總字庫」） ---------- */
+/* BANK:START（由 tools/sync-bank.js 產生，請勿手改） */
 const BANK=[
- {l:1,zh:'一',sc:'一',py:'yī',zy:'ㄧ',es:'uno',en:'one'},
- {l:1,zh:'二',sc:'二',py:'èr',zy:'ㄦˋ',es:'dos',en:'two'},
- {l:1,zh:'三',sc:'三',py:'sān',zy:'ㄙㄢ',es:'tres',en:'three'},
- {l:1,zh:'四',sc:'四',py:'sì',zy:'ㄙˋ',es:'cuatro',en:'four'},
- {l:1,zh:'五',sc:'五',py:'wǔ',zy:'ㄨˇ',es:'cinco',en:'five'},
- {l:1,zh:'人',sc:'人',py:'rén',zy:'ㄖㄣˊ',es:'persona',en:'person'},
- {l:1,zh:'大',sc:'大',py:'dà',zy:'ㄉㄚˋ',es:'grande',en:'big'},
- {l:1,zh:'小',sc:'小',py:'xiǎo',zy:'ㄒㄧㄠˇ',es:'pequeño',en:'small'},
- {l:1,zh:'水',sc:'水',py:'shuǐ',zy:'ㄕㄨㄟˇ',es:'agua',en:'water'},
- {l:1,zh:'火',sc:'火',py:'huǒ',zy:'ㄏㄨㄛˇ',es:'fuego',en:'fire'},
- {l:1,zh:'山',sc:'山',py:'shān',zy:'ㄕㄢ',es:'montaña',en:'mountain'},
- {l:1,zh:'月',sc:'月',py:'yuè',zy:'ㄩㄝˋ',es:'luna',en:'moon / month'},
- {l:1,zh:'日',sc:'日',py:'rì',zy:'ㄖˋ',es:'sol / día',en:'sun / day'},
- {l:1,zh:'口',sc:'口',py:'kǒu',zy:'ㄎㄡˇ',es:'boca',en:'mouth'},
- {l:1,zh:'手',sc:'手',py:'shǒu',zy:'ㄕㄡˇ',es:'mano',en:'hand'},
- {l:1,zh:'心',sc:'心',py:'xīn',zy:'ㄒㄧㄣ',es:'corazón',en:'heart'},
- {l:1,zh:'木',sc:'木',py:'mù',zy:'ㄇㄨˋ',es:'árbol / madera',en:'tree / wood'},
- {l:1,zh:'門',sc:'门',py:'mén',zy:'ㄇㄣˊ',es:'puerta',en:'door'},
- {l:1,zh:'雨',sc:'雨',py:'yǔ',zy:'ㄩˇ',es:'lluvia',en:'rain'},
- {l:1,zh:'狗',sc:'狗',py:'gǒu',zy:'ㄍㄡˇ',es:'perro',en:'dog'},
- {l:1,zh:'貓',sc:'猫',py:'māo',zy:'ㄇㄠ',es:'gato',en:'cat'},
- {l:1,zh:'魚',sc:'鱼',py:'yú',zy:'ㄩˊ',es:'pez',en:'fish'},
- {l:1,zh:'鳥',sc:'鸟',py:'niǎo',zy:'ㄋㄧㄠˇ',es:'pájaro',en:'bird'},
- {l:1,zh:'車',sc:'车',py:'chē',zy:'ㄔㄜ',es:'carro',en:'car'},
- {l:1,zh:'飯',sc:'饭',py:'fàn',zy:'ㄈㄢˋ',es:'arroz / comida',en:'rice / meal'},
- {l:1,zh:'茶',sc:'茶',py:'chá',zy:'ㄔㄚˊ',es:'té',en:'tea'},
- {l:1,zh:'書',sc:'书',py:'shū',zy:'ㄕㄨ',es:'libro',en:'book'},
- {l:1,zh:'家',sc:'家',py:'jiā',zy:'ㄐㄧㄚ',es:'casa',en:'home'},
- {l:1,zh:'好',sc:'好',py:'hǎo',zy:'ㄏㄠˇ',es:'bueno',en:'good'},
- {l:2,zh:'老師',sc:'老师',py:'lǎoshī',zy:'ㄌㄠˇㄕ',es:'profesor',en:'teacher'},
- {l:2,zh:'學生',sc:'学生',py:'xuéshēng',zy:'ㄒㄩㄝˊㄕㄥ',es:'estudiante',en:'student'},
- {l:2,zh:'朋友',sc:'朋友',py:'péngyǒu',zy:'ㄆㄥˊㄧㄡˇ',es:'amigo',en:'friend'},
- {l:2,zh:'蘋果',sc:'苹果',py:'píngguǒ',zy:'ㄆㄧㄥˊㄍㄨㄛˇ',es:'manzana',en:'apple'},
- {l:2,zh:'牛奶',sc:'牛奶',py:'niúnǎi',zy:'ㄋㄧㄡˊㄋㄞˇ',es:'leche',en:'milk'},
- {l:2,zh:'電話',sc:'电话',py:'diànhuà',zy:'ㄉㄧㄢˋㄏㄨㄚˋ',es:'teléfono',en:'telephone'},
- {l:2,zh:'學校',sc:'学校',py:'xuéxiào',zy:'ㄒㄩㄝˊㄒㄧㄠˋ',es:'escuela',en:'school'},
- {l:2,zh:'醫院',sc:'医院',py:'yīyuàn',zy:'ㄧㄩㄢˋ',es:'hospital',en:'hospital'},
- {l:2,zh:'咖啡',sc:'咖啡',py:'kāfēi',zy:'ㄎㄚㄈㄟ',es:'café',en:'coffee'},
- {l:2,zh:'手機',sc:'手机',py:'shǒujī',zy:'ㄕㄡˇㄐㄧ',es:'celular',en:'cell phone'},
- {l:2,zh:'火車',sc:'火车',py:'huǒchē',zy:'ㄏㄨㄛˇㄔㄜ',es:'tren',en:'train'},
- {l:2,zh:'捷運',sc:'捷运',py:'jiéyùn',zy:'ㄐㄧㄝˊㄩㄣˋ',es:'metro (MRT)',en:'MRT (metro)'},
- {l:2,zh:'便當',sc:'便当',py:'biàndāng',zy:'ㄅㄧㄢˋㄉㄤ',es:'lonche (bento)',en:'lunch box (bento)'},
- {l:2,zh:'夜市',sc:'夜市',py:'yèshì',zy:'ㄧㄝˋㄕˋ',es:'mercado nocturno',en:'night market'},
- {l:2,zh:'早餐',sc:'早餐',py:'zǎocān',zy:'ㄗㄠˇㄘㄢ',es:'desayuno',en:'breakfast'},
- {l:2,zh:'天氣',sc:'天气',py:'tiānqì',zy:'ㄊㄧㄢㄑㄧˋ',es:'clima',en:'weather'},
- {l:2,zh:'眼睛',sc:'眼睛',py:'yǎnjīng',zy:'ㄧㄢˇㄐㄧㄥ',es:'ojos',en:'eyes'},
- {l:2,zh:'冰箱',sc:'冰箱',py:'bīngxiāng',zy:'ㄅㄧㄥㄒㄧㄤ',es:'refrigerador',en:'refrigerator'},
- {l:2,zh:'椅子',sc:'椅子',py:'yǐzi',zy:'ㄧˇ˙ㄗ',es:'silla',en:'chair'},
- {l:2,zh:'桌子',sc:'桌子',py:'zhuōzi',zy:'ㄓㄨㄛ˙ㄗ',es:'mesa',en:'table'},
- {l:3,zh:'方便',sc:'方便',py:'fāngbiàn',zy:'ㄈㄤㄅㄧㄢˋ',es:'conveniente',en:'convenient'},
- {l:3,zh:'麻煩',sc:'麻烦',py:'máfan',zy:'ㄇㄚˊ˙ㄈㄢ',es:'molestia / problema',en:'trouble / bother'},
- {l:3,zh:'習慣',sc:'习惯',py:'xíguàn',zy:'ㄒㄧˊㄍㄨㄢˋ',es:'costumbre / acostumbrarse',en:'habit / get used to'},
- {l:3,zh:'經驗',sc:'经验',py:'jīngyàn',zy:'ㄐㄧㄥㄧㄢˋ',es:'experiencia',en:'experience'},
- {l:3,zh:'需要',sc:'需要',py:'xūyào',zy:'ㄒㄩㄧㄠˋ',es:'necesitar',en:'to need'},
- {l:3,zh:'決定',sc:'决定',py:'juédìng',zy:'ㄐㄩㄝˊㄉㄧㄥˋ',es:'decidir',en:'to decide'},
- {l:3,zh:'容易',sc:'容易',py:'róngyì',zy:'ㄖㄨㄥˊㄧˋ',es:'fácil',en:'easy'},
- {l:3,zh:'重要',sc:'重要',py:'zhòngyào',zy:'ㄓㄨㄥˋㄧㄠˋ',es:'importante',en:'important'},
- {l:3,zh:'健康',sc:'健康',py:'jiànkāng',zy:'ㄐㄧㄢˋㄎㄤ',es:'salud',en:'health'},
- {l:3,zh:'環境',sc:'环境',py:'huánjìng',zy:'ㄏㄨㄢˊㄐㄧㄥˋ',es:'medio ambiente',en:'environment'},
- {l:3,zh:'準備',sc:'准备',py:'zhǔnbèi',zy:'ㄓㄨㄣˇㄅㄟˋ',es:'preparar',en:'to prepare'},
- {l:3,zh:'擔心',sc:'担心',py:'dānxīn',zy:'ㄉㄢㄒㄧㄣ',es:'preocuparse',en:'to worry'},
- {l:3,zh:'邀請',sc:'邀请',py:'yāoqǐng',zy:'ㄧㄠㄑㄧㄥˇ',es:'invitar',en:'to invite'},
- {l:3,zh:'比賽',sc:'比赛',py:'bǐsài',zy:'ㄅㄧˇㄙㄞˋ',es:'competencia',en:'competition'},
- {l:3,zh:'機會',sc:'机会',py:'jīhuì',zy:'ㄐㄧㄏㄨㄟˋ',es:'oportunidad',en:'opportunity'}
+ {zh:'米飯',sc:'米饭',py:'mǐfàn',zy:'ㄇㄧˇㄈㄢˋ',es:'arroz',en:'rice'},
+ {zh:'麵',sc:'面',py:'miàn',zy:'ㄇㄧㄢˋ',es:'fideos',en:'noodles'},
+ {zh:'包子',sc:'包子',py:'bāozi',zy:'ㄅㄠ˙ㄗ',es:'bao (pan al vapor)',en:'steamed bun'},
+ {zh:'餃子',sc:'饺子',py:'jiǎozi',zy:'ㄐㄧㄠˇ˙ㄗ',es:'dumplings',en:'dumplings'},
+ {zh:'蛋',sc:'蛋',py:'dàn',zy:'ㄉㄢˋ',es:'huevo',en:'egg'},
+ {zh:'牛肉',sc:'牛肉',py:'niúròu',zy:'ㄋㄧㄡˊㄖㄡˋ',es:'carne de res',en:'beef'},
+ {zh:'豆腐',sc:'豆腐',py:'dòufu',zy:'ㄉㄡˋ˙ㄈㄨ',es:'tofu',en:'tofu'},
+ {zh:'麵包',sc:'面包',py:'miànbāo',zy:'ㄇㄧㄢˋㄅㄠ',es:'pan',en:'bread'},
+ {zh:'湯',sc:'汤',py:'tāng',zy:'ㄊㄤ',es:'sopa',en:'soup'},
+ {zh:'魚肉',sc:'鱼肉',py:'yúròu',zy:'ㄩˊㄖㄡˋ',es:'pescado (carne)',en:'fish (meat)'},
+ {zh:'青菜',sc:'青菜',py:'qīngcài',zy:'ㄑㄧㄥㄘㄞˋ',es:'verduras',en:'greens'},
+ {zh:'蛋糕',sc:'蛋糕',py:'dàngāo',zy:'ㄉㄤˋㄠ',es:'pastel',en:'cake'},
+ {zh:'飯糰',sc:'饭团',py:'fàntuán',zy:'ㄈㄢˋㄊㄨㄢˊ',es:'bola de arroz',en:'rice ball'},
+ {zh:'小籠包',sc:'小笼包',py:'xiǎolóngbāo',zy:'ㄒㄧㄠˇㄌㄨㄥˊㄅㄠ',es:'xiaolongbao',en:'soup dumpling'},
+ {zh:'滷肉飯',sc:'卤肉饭',py:'lǔròufàn',zy:'ㄌㄨˇㄖㄡˋㄈㄢˋ',es:'arroz con carne guisada',en:'braised pork rice'},
+ {zh:'炒飯',sc:'炒饭',py:'chǎofàn',zy:'ㄔㄠˇㄈㄢˋ',es:'arroz frito',en:'fried rice'},
+ {zh:'雞肉',sc:'鸡肉',py:'jīròu',zy:'ㄐㄧㄖㄡˋ',es:'pollo',en:'chicken'},
+ {zh:'豬肉',sc:'猪肉',py:'zhūròu',zy:'ㄓㄨㄖㄡˋ',es:'cerdo',en:'pork'},
+ {zh:'牛奶',sc:'牛奶',py:'niúnǎi',zy:'ㄋㄧㄡˊㄋㄞˇ',es:'leche',en:'milk'},
+ {zh:'豆漿',sc:'豆浆',py:'dòujiāng',zy:'ㄉㄡˋㄐㄧㄤ',es:'leche de soya',en:'soy milk'},
+ {zh:'羊肉',sc:'羊肉',py:'yángròu',zy:'ㄧㄤˊㄖㄡˋ',es:'cordero',en:'lamb'},
+ {zh:'排骨',sc:'排骨',py:'páigǔ',zy:'ㄆㄞˊㄍㄨˇ',es:'costillas de cerdo',en:'pork ribs'},
+ {zh:'香腸',sc:'香肠',py:'xiāngcháng',zy:'ㄒㄧㄤㄔㄤˊ',es:'salchicha',en:'sausage'},
+ {zh:'火腿',sc:'火腿',py:'huǒtuǐ',zy:'ㄏㄨㄛˇㄊㄨㄟˇ',es:'jamón',en:'ham'},
+ {zh:'培根',sc:'培根',py:'péigēn',zy:'ㄆㄟˊㄍㄣ',es:'tocino',en:'bacon'},
+ {zh:'魚丸',sc:'鱼丸',py:'yúwán',zy:'ㄩˊㄨㄢˊ',es:'bolitas de pescado',en:'fish ball'},
+ {zh:'蛋餅',sc:'蛋饼',py:'dànbǐng',zy:'ㄉㄢˋㄅㄧㄥˇ',es:'tortilla de huevo',en:'egg pancake'},
+ {zh:'煎蛋',sc:'煎蛋',py:'jiāndàn',zy:'ㄐㄧㄢㄉㄢˋ',es:'huevo frito',en:'fried egg'},
+ {zh:'水煮蛋',sc:'水煮蛋',py:'shuǐzhǔdàn',zy:'ㄕㄨㄟˇㄓㄨˇㄉㄢˋ',es:'huevo cocido',en:'boiled egg'},
+ {zh:'饅頭',sc:'馒头',py:'mántou',zy:'ㄇㄢˊ˙ㄊㄡ',es:'pan al vapor',en:'steamed bread'},
+ {zh:'稀飯',sc:'稀饭',py:'xīfàn',zy:'ㄒㄧㄈㄢˋ',es:'congee',en:'rice porridge'},
+ {zh:'水餃',sc:'水饺',py:'shuǐjiǎo',zy:'ㄕㄨㄟˇㄐㄧㄠˇ',es:'dumplings hervidos',en:'boiled dumplings'},
+ {zh:'鍋貼',sc:'锅贴',py:'guōtiē',zy:'ㄍㄨㄛㄊㄧㄝ',es:'dumplings fritos',en:'potstickers'},
+ {zh:'餛飩',sc:'馄饨',py:'húntun',zy:'ㄏㄨㄣˊ˙ㄊㄨㄣ',es:'wonton',en:'wonton'},
+ {zh:'春捲',sc:'春卷',py:'chūnjuǎn',zy:'ㄔㄨㄣㄐㄩㄢˇ',es:'rollito primavera',en:'spring roll'},
+ {zh:'牛肉麵',sc:'牛肉面',py:'niúròumiàn',zy:'ㄋㄧㄡˊㄖㄡˋㄇㄧㄢˋ',es:'sopa de fideos con res',en:'beef noodle soup'},
+ {zh:'拉麵',sc:'拉面',py:'lāmiàn',zy:'ㄌㄚㄇㄧㄢˋ',es:'ramen',en:'ramen'},
+ {zh:'義大利麵',sc:'意大利面',py:'yìdàlìmiàn',zy:'ㄧˋㄉㄚˋㄌㄧˋㄇㄧㄢˋ',es:'espagueti',en:'spaghetti'},
+ {zh:'米粉',sc:'米粉',py:'mǐfěn',zy:'ㄇㄧˇㄈㄣˇ',es:'fideos de arroz',en:'rice noodles'},
+ {zh:'披薩',sc:'披萨',py:'pīsà',zy:'ㄆㄧㄙㄚˋ',es:'pizza',en:'pizza'},
+ {zh:'漢堡',sc:'汉堡',py:'hànbǎo',zy:'ㄏㄢˋㄅㄠˇ',es:'hamburguesa',en:'hamburger'},
+ {zh:'三明治',sc:'三明治',py:'sānmíngzhì',zy:'ㄙㄢㄇㄧㄥˊㄓˋ',es:'sándwich',en:'sandwich'},
+ {zh:'薯條',sc:'薯条',py:'shǔtiáo',zy:'ㄕㄨˇㄊㄧㄠˊ',es:'papas fritas',en:'french fries'},
+ {zh:'炸雞',sc:'炸鸡',py:'zhájī',zy:'ㄓㄚˊㄐㄧ',es:'pollo frito',en:'fried chicken'},
+ {zh:'熱狗',sc:'热狗',py:'règǒu',zy:'ㄖㄜˋㄍㄡˇ',es:'hot dog',en:'hot dog'},
+ {zh:'沙拉',sc:'沙拉',py:'shālā',zy:'ㄕㄚㄌㄚ',es:'ensalada',en:'salad'},
+ {zh:'優格',sc:'优格',py:'yōugé',zy:'ㄧㄡㄍㄜˊ',es:'yogur',en:'yogurt'},
+ {zh:'起司',sc:'起司',py:'qǐsī',zy:'ㄑㄧˇㄙ',es:'queso',en:'cheese'},
+ {zh:'奶油',sc:'奶油',py:'nǎiyóu',zy:'ㄋㄞˇㄧㄡˊ',es:'mantequilla',en:'butter'},
+ {zh:'餅乾',sc:'饼干',py:'bǐnggān',zy:'ㄅㄧㄥˇㄍㄢ',es:'galletas',en:'cookies'},
+ {zh:'巧克力',sc:'巧克力',py:'qiǎokèlì',zy:'ㄑㄧㄠˇㄎㄜˋㄌㄧˋ',es:'chocolate',en:'chocolate'},
+ {zh:'糖果',sc:'糖果',py:'tángguǒ',zy:'ㄊㄤˊㄍㄨㄛˇ',es:'dulces',en:'candy'},
+ {zh:'冰淇淋',sc:'冰淇淋',py:'bīngqílín',zy:'ㄅㄧㄥㄑㄧˊㄌㄧㄣˊ',es:'helado',en:'ice cream'},
+ {zh:'布丁',sc:'布丁',py:'bùdīng',zy:'ㄅㄨˋㄉㄧㄥ',es:'flan',en:'pudding'},
+ {zh:'麻糬',sc:'麻糬',py:'máshǔ',zy:'ㄇㄚˊㄕㄨˇ',es:'mochi',en:'mochi'},
+ {zh:'珍珠奶茶',sc:'珍珠奶茶',py:'zhēnzhūnǎichá',zy:'ㄓㄣㄓㄨㄋㄞˇㄔㄚˊ',es:'té de burbujas',en:'bubble tea'},
+ {zh:'咖啡',sc:'咖啡',py:'kāfēi',zy:'ㄎㄚㄈㄟ',es:'café',en:'coffee'},
+ {zh:'茶',sc:'茶',py:'chá',zy:'ㄔㄚˊ',es:'té',en:'tea'},
+ {zh:'果汁',sc:'果汁',py:'guǒzhī',zy:'ㄍㄨㄛˇㄓ',es:'jugo',en:'juice'},
+ {zh:'可樂',sc:'可乐',py:'kělè',zy:'ㄎㄜˇㄌㄜˋ',es:'refresco de cola',en:'cola'},
+ {zh:'啤酒',sc:'啤酒',py:'píjiǔ',zy:'ㄆㄧˊㄐㄧㄡˇ',es:'cerveza',en:'beer'},
+ {zh:'水',sc:'水',py:'shuǐ',zy:'ㄕㄨㄟˇ',es:'agua',en:'water'},
+ {zh:'鹽',sc:'盐',py:'yán',zy:'ㄧㄢˊ',es:'sal',en:'salt'},
+ {zh:'糖',sc:'糖',py:'táng',zy:'ㄊㄤˊ',es:'azúcar',en:'sugar'},
+ {zh:'醬油',sc:'酱油',py:'jiàngyóu',zy:'ㄐㄧㄤˋㄧㄡˊ',es:'salsa de soya',en:'soy sauce'},
+ {zh:'醋',sc:'醋',py:'cù',zy:'ㄘㄨˋ',es:'vinagre',en:'vinegar'},
+ {zh:'油',sc:'油',py:'yóu',zy:'ㄧㄡˊ',es:'aceite',en:'oil'},
+ {zh:'辣椒',sc:'辣椒',py:'làjiāo',zy:'ㄌㄚˋㄐㄧㄠ',es:'chile',en:'chili pepper'},
+ {zh:'蔥',sc:'葱',py:'cōng',zy:'ㄘㄨㄥ',es:'cebollín',en:'green onion'},
+ {zh:'薑',sc:'姜',py:'jiāng',zy:'ㄐㄧㄤ',es:'jengibre',en:'ginger'},
+ {zh:'蒜頭',sc:'蒜头',py:'suàntóu',zy:'ㄙㄨㄢˋㄊㄡˊ',es:'ajo',en:'garlic'},
+ {zh:'洋蔥',sc:'洋葱',py:'yángcōng',zy:'ㄧㄤˊㄘㄨㄥ',es:'cebolla',en:'onion'},
+ {zh:'馬鈴薯',sc:'马铃薯',py:'mǎlíngshǔ',zy:'ㄇㄚˇㄌㄧㄥˊㄕㄨˇ',es:'papa',en:'potato'},
+ {zh:'紅蘿蔔',sc:'红萝卜',py:'hóngluóbo',zy:'ㄏㄨㄥˊㄌㄨㄛˊ˙ㄅㄛ',es:'zanahoria',en:'carrot'},
+ {zh:'高麗菜',sc:'高丽菜',py:'gāolìcài',zy:'ㄍㄠㄌㄧˋㄘㄞˋ',es:'repollo',en:'cabbage'},
+ {zh:'青椒',sc:'青椒',py:'qīngjiāo',zy:'ㄑㄧㄥㄐㄧㄠ',es:'pimiento',en:'bell pepper'},
+ {zh:'玉米',sc:'玉米',py:'yùmǐ',zy:'ㄩˋㄇㄧˇ',es:'maíz',en:'corn'},
+ {zh:'地瓜',sc:'地瓜',py:'dìguā',zy:'ㄉㄧˋㄍㄨㄚ',es:'camote',en:'sweet potato'},
+ {zh:'香菇',sc:'香菇',py:'xiānggū',zy:'ㄒㄧㄤㄍㄨ',es:'hongo shiitake',en:'shiitake mushroom'},
+ {zh:'花生',sc:'花生',py:'huāshēng',zy:'ㄏㄨㄚㄕㄥ',es:'cacahuate',en:'peanut'},
+ {zh:'蘋果',sc:'苹果',py:'píngguǒ',zy:'ㄆㄧㄥˊㄍㄨㄛˇ',es:'manzana',en:'apple'},
+ {zh:'香蕉',sc:'香蕉',py:'xiāngjiāo',zy:'ㄒㄧㄤㄐㄧㄠ',es:'plátano',en:'banana'},
+ {zh:'西瓜',sc:'西瓜',py:'xīguā',zy:'ㄒㄧㄍㄨㄚ',es:'sandía',en:'watermelon'},
+ {zh:'葡萄',sc:'葡萄',py:'pútáo',zy:'ㄆㄨˊㄊㄠˊ',es:'uvas',en:'grapes'},
+ {zh:'芒果',sc:'芒果',py:'mángguǒ',zy:'ㄇㄤˊㄍㄨㄛˇ',es:'mango',en:'mango'},
+ {zh:'橘子',sc:'橘子',py:'júzi',zy:'ㄐㄩˊ˙ㄗ',es:'mandarina',en:'tangerine'},
+ {zh:'草莓',sc:'草莓',py:'cǎoméi',zy:'ㄘㄠˇㄇㄟˊ',es:'fresa',en:'strawberry'},
+ {zh:'鳳梨',sc:'凤梨',py:'fènglí',zy:'ㄈㄥˋㄌㄧˊ',es:'piña',en:'pineapple'},
+ {zh:'檸檬',sc:'柠檬',py:'níngméng',zy:'ㄋㄧㄥˊㄇㄥˊ',es:'limón',en:'lemon'},
+ {zh:'梨子',sc:'梨子',py:'lízi',zy:'ㄌㄧˊ˙ㄗ',es:'pera',en:'pear'},
+ {zh:'桃子',sc:'桃子',py:'táozi',zy:'ㄊㄠˊ˙ㄗ',es:'durazno',en:'peach'},
+ {zh:'木瓜',sc:'木瓜',py:'mùguā',zy:'ㄇㄨˋㄍㄨㄚ',es:'papaya',en:'papaya'},
+ {zh:'櫻桃',sc:'樱桃',py:'yīngtáo',zy:'ㄧㄥㄊㄠˊ',es:'cereza',en:'cherry'},
+ {zh:'奇異果',sc:'奇异果',py:'qíyìguǒ',zy:'ㄑㄧˊㄧˋㄍㄨㄛˇ',es:'kiwi',en:'kiwi'},
+ {zh:'蓮霧',sc:'莲雾',py:'liánwù',zy:'ㄌㄧㄢˊㄨˋ',es:'manzana de agua',en:'wax apple'},
+ {zh:'芭樂',sc:'芭乐',py:'bālè',zy:'ㄅㄚㄌㄜˋ',es:'guayaba',en:'guava'},
+ {zh:'柚子',sc:'柚子',py:'yòuzi',zy:'ㄧㄡˋ˙ㄗ',es:'pomelo',en:'pomelo'},
+ {zh:'荔枝',sc:'荔枝',py:'lìzhī',zy:'ㄌㄧˋㄓ',es:'lichi',en:'lychee'},
+ {zh:'柿子',sc:'柿子',py:'shìzi',zy:'ㄕˋ˙ㄗ',es:'caqui',en:'persimmon'},
+ {zh:'哈密瓜',sc:'哈密瓜',py:'hāmìguā',zy:'ㄏㄚㄇㄧˋㄍㄨㄚ',es:'melón',en:'cantaloupe'},
+ {zh:'藍莓',sc:'蓝莓',py:'lánméi',zy:'ㄌㄢˊㄇㄟˊ',es:'arándano',en:'blueberry'},
+ {zh:'龍眼',sc:'龙眼',py:'lóngyǎn',zy:'ㄌㄨㄥˊㄧㄢˇ',es:'longan',en:'longan'},
+ {zh:'火龍果',sc:'火龙果',py:'huǒlóngguǒ',zy:'ㄏㄨㄛˇㄌㄨㄥˊㄍㄨㄛˇ',es:'pitahaya',en:'dragon fruit'},
+ {zh:'榴槤',sc:'榴莲',py:'liúlián',zy:'ㄌㄧㄡˊㄌㄧㄢˊ',es:'durián',en:'durian'},
+ {zh:'椰子',sc:'椰子',py:'yēzi',zy:'ㄧㄝ˙ㄗ',es:'coco',en:'coconut'},
+ {zh:'石榴',sc:'石榴',py:'shíliu',zy:'ㄕˊ˙ㄌㄧㄡ',es:'granada',en:'pomegranate'},
+ {zh:'李子',sc:'李子',py:'lǐzi',zy:'ㄌㄧˇ˙ㄗ',es:'ciruela',en:'plum'},
+ {zh:'杏子',sc:'杏子',py:'xìngzi',zy:'ㄒㄧㄥˋ˙ㄗ',es:'albaricoque',en:'apricot'},
+ {zh:'無花果',sc:'无花果',py:'wúhuāguǒ',zy:'ㄨˊㄏㄨㄚㄍㄨㄛˇ',es:'higo',en:'fig'},
+ {zh:'小番茄',sc:'小番茄',py:'xiǎofānqié',zy:'ㄒㄧㄠˇㄈㄢㄑㄧㄝˊ',es:'tomate cherry',en:'cherry tomato'},
+ {zh:'水蜜桃',sc:'水蜜桃',py:'shuǐmìtáo',zy:'ㄕㄨㄟˇㄇㄧˋㄊㄠˊ',es:'durazno jugoso',en:'juicy peach'},
+ {zh:'水梨',sc:'水梨',py:'shuǐlí',zy:'ㄕㄨㄟˇㄌㄧˊ',es:'pera asiática',en:'Asian pear'},
+ {zh:'香瓜',sc:'香瓜',py:'xiāngguā',zy:'ㄒㄧㄤㄍㄨㄚ',es:'melón dulce',en:'sweet melon'},
+ {zh:'楊桃',sc:'杨桃',py:'yángtáo',zy:'ㄧㄤˊㄊㄠˊ',es:'carambola',en:'starfruit'},
+ {zh:'釋迦',sc:'释迦',py:'shìjiā',zy:'ㄕˋㄐㄧㄚ',es:'chirimoya',en:'sugar apple'},
+ {zh:'百香果',sc:'百香果',py:'bǎixiāngguǒ',zy:'ㄅㄞˇㄒㄧㄤㄍㄨㄛˇ',es:'maracuyá',en:'passion fruit'},
+ {zh:'山竹',sc:'山竹',py:'shānzhú',zy:'ㄕㄢㄓㄨˊ',es:'mangostán',en:'mangosteen'},
+ {zh:'萊姆',sc:'莱姆',py:'láimǔ',zy:'ㄌㄞˊㄇㄨˇ',es:'lima',en:'lime'},
+ {zh:'葡萄柚',sc:'葡萄柚',py:'pútáoyòu',zy:'ㄆㄨˊㄊㄠˊㄧㄡˋ',es:'toronja',en:'grapefruit'},
+ {zh:'柳橙',sc:'柳橙',py:'liǔchéng',zy:'ㄌㄧㄡˇㄔㄥˊ',es:'naranja',en:'orange'},
+ {zh:'蔓越莓',sc:'蔓越莓',py:'mànyuèméi',zy:'ㄇㄢˋㄩㄝˋㄇㄟˊ',es:'arándano rojo',en:'cranberry'},
+ {zh:'覆盆子',sc:'覆盆子',py:'fùpénzǐ',zy:'ㄈㄨˋㄆㄣˊㄗˇ',es:'frambuesa',en:'raspberry'},
+ {zh:'棗子',sc:'枣子',py:'zǎozi',zy:'ㄗㄠˇ˙ㄗ',es:'dátil rojo',en:'jujube'},
+ {zh:'枇杷',sc:'枇杷',py:'pípá',zy:'ㄆㄧˊㄆㄚˊ',es:'níspero',en:'loquat'},
+ {zh:'酪梨',sc:'酪梨',py:'làolí',zy:'ㄌㄠˋㄌㄧˊ',es:'aguacate',en:'avocado'},
+ {zh:'葡萄乾',sc:'葡萄干',py:'pútáogān',zy:'ㄆㄨˊㄊㄠˊㄍㄢ',es:'pasas',en:'raisins'},
+ {zh:'青蘋果',sc:'青苹果',py:'qīngpíngguǒ',zy:'ㄑㄧㄥㄆㄧㄥˊㄍㄨㄛˇ',es:'manzana verde',en:'green apple'},
+ {zh:'狗',sc:'狗',py:'gǒu',zy:'ㄍㄡˇ',es:'perro',en:'dog'},
+ {zh:'貓',sc:'猫',py:'māo',zy:'ㄇㄠ',es:'gato',en:'cat'},
+ {zh:'鳥',sc:'鸟',py:'niǎo',zy:'ㄋㄧㄠˇ',es:'pájaro',en:'bird'},
+ {zh:'馬',sc:'马',py:'mǎ',zy:'ㄇㄚˇ',es:'caballo',en:'horse'},
+ {zh:'牛',sc:'牛',py:'niú',zy:'ㄋㄧㄡˊ',es:'vaca',en:'cow'},
+ {zh:'豬',sc:'猪',py:'zhū',zy:'ㄓㄨ',es:'cerdo',en:'pig'},
+ {zh:'羊',sc:'羊',py:'yáng',zy:'ㄧㄤˊ',es:'oveja',en:'sheep'},
+ {zh:'兔子',sc:'兔子',py:'tùzi',zy:'ㄊㄨˋ˙ㄗ',es:'conejo',en:'rabbit'},
+ {zh:'老虎',sc:'老虎',py:'lǎohǔ',zy:'ㄌㄠˇㄏㄨˇ',es:'tigre',en:'tiger'},
+ {zh:'猴子',sc:'猴子',py:'hóuzi',zy:'ㄏㄡˊ˙ㄗ',es:'mono',en:'monkey'},
+ {zh:'大象',sc:'大象',py:'dàxiàng',zy:'ㄉㄚˋㄒㄧㄤˋ',es:'elefante',en:'elephant'},
+ {zh:'熊貓',sc:'熊猫',py:'xióngmāo',zy:'ㄒㄩㄥˊㄇㄠ',es:'panda',en:'panda'},
+ {zh:'老鼠',sc:'老鼠',py:'lǎoshǔ',zy:'ㄌㄠˇㄕㄨˇ',es:'ratón',en:'mouse'},
+ {zh:'雞',sc:'鸡',py:'jī',zy:'ㄐㄧ',es:'gallina',en:'chicken (animal)'},
+ {zh:'蛇',sc:'蛇',py:'shé',zy:'ㄕㄜˊ',es:'serpiente',en:'snake'},
+ {zh:'烏龜',sc:'乌龟',py:'wūguī',zy:'ㄨㄍㄨㄟ',es:'tortuga',en:'turtle'},
+ {zh:'青蛙',sc:'青蛙',py:'qīngwā',zy:'ㄑㄧㄥㄨㄚ',es:'rana',en:'frog'},
+ {zh:'蝴蝶',sc:'蝴蝶',py:'húdié',zy:'ㄏㄨˊㄉㄧㄝˊ',es:'mariposa',en:'butterfly'},
+ {zh:'獅子',sc:'狮子',py:'shīzi',zy:'ㄕ˙ㄗ',es:'león',en:'lion'},
+ {zh:'龍',sc:'龙',py:'lóng',zy:'ㄌㄨㄥˊ',es:'dragón',en:'dragon'},
+ {zh:'魚',sc:'鱼',py:'yú',zy:'ㄩˊ',es:'pez',en:'fish'},
+ {zh:'鴨子',sc:'鸭子',py:'yāzi',zy:'ㄧㄚ˙ㄗ',es:'pato',en:'duck'},
+ {zh:'鵝',sc:'鹅',py:'é',zy:'ㄜˊ',es:'ganso',en:'goose'},
+ {zh:'熊',sc:'熊',py:'xióng',zy:'ㄒㄩㄥˊ',es:'oso',en:'bear'},
+ {zh:'狼',sc:'狼',py:'láng',zy:'ㄌㄤˊ',es:'lobo',en:'wolf'},
+ {zh:'狐狸',sc:'狐狸',py:'húli',zy:'ㄏㄨˊ˙ㄌㄧ',es:'zorro',en:'fox'},
+ {zh:'鹿',sc:'鹿',py:'lù',zy:'ㄌㄨˋ',es:'venado',en:'deer'},
+ {zh:'長頸鹿',sc:'长颈鹿',py:'chángjǐnglù',zy:'ㄔㄤˊㄐㄧㄥˇㄌㄨˋ',es:'jirafa',en:'giraffe'},
+ {zh:'斑馬',sc:'斑马',py:'bānmǎ',zy:'ㄅㄢㄇㄚˇ',es:'cebra',en:'zebra'},
+ {zh:'駱駝',sc:'骆驼',py:'luòtuo',zy:'ㄌㄨㄛˋ˙ㄊㄨㄛ',es:'camello',en:'camel'},
+ {zh:'河馬',sc:'河马',py:'hémǎ',zy:'ㄏㄜˊㄇㄚˇ',es:'hipopótamo',en:'hippo'},
+ {zh:'犀牛',sc:'犀牛',py:'xīniú',zy:'ㄒㄧㄋㄧㄡˊ',es:'rinoceronte',en:'rhino'},
+ {zh:'袋鼠',sc:'袋鼠',py:'dàishǔ',zy:'ㄉㄞˋㄕㄨˇ',es:'canguro',en:'kangaroo'},
+ {zh:'無尾熊',sc:'无尾熊',py:'wúwěixióng',zy:'ㄨˊㄨㄟˇㄒㄩㄥˊ',es:'koala',en:'koala'},
+ {zh:'松鼠',sc:'松鼠',py:'sōngshǔ',zy:'ㄙㄨㄥㄕㄨˇ',es:'ardilla',en:'squirrel'},
+ {zh:'刺蝟',sc:'刺猬',py:'cìwèi',zy:'ㄘˋㄨㄟˋ',es:'erizo',en:'hedgehog'},
+ {zh:'蝙蝠',sc:'蝙蝠',py:'biānfú',zy:'ㄅㄧㄢㄈㄨˊ',es:'murciélago',en:'bat'},
+ {zh:'老鷹',sc:'老鹰',py:'lǎoyīng',zy:'ㄌㄠˇㄧㄥ',es:'águila',en:'eagle'},
+ {zh:'貓頭鷹',sc:'猫头鹰',py:'māotóuyīng',zy:'ㄇㄠㄊㄡˊㄧㄥ',es:'búho',en:'owl'},
+ {zh:'烏鴉',sc:'乌鸦',py:'wūyā',zy:'ㄨㄧㄚ',es:'cuervo',en:'crow'},
+ {zh:'麻雀',sc:'麻雀',py:'máquè',zy:'ㄇㄚˊㄑㄩㄝˋ',es:'gorrión',en:'sparrow'},
+ {zh:'鴿子',sc:'鸽子',py:'gēzi',zy:'ㄍㄜ˙ㄗ',es:'paloma',en:'pigeon'},
+ {zh:'鸚鵡',sc:'鹦鹉',py:'yīngwǔ',zy:'ㄧㄥㄨˇ',es:'loro',en:'parrot'},
+ {zh:'孔雀',sc:'孔雀',py:'kǒngquè',zy:'ㄎㄨㄥˇㄑㄩㄝˋ',es:'pavo real',en:'peacock'},
+ {zh:'企鵝',sc:'企鹅',py:'qǐ\'é',zy:'ㄑㄧˇㄜˊ',es:'pingüino',en:'penguin'},
+ {zh:'鯨魚',sc:'鲸鱼',py:'jīngyú',zy:'ㄐㄧㄥㄩˊ',es:'ballena',en:'whale'},
+ {zh:'海豚',sc:'海豚',py:'hǎitún',zy:'ㄏㄞˇㄊㄨㄣˊ',es:'delfín',en:'dolphin'},
+ {zh:'鯊魚',sc:'鲨鱼',py:'shāyú',zy:'ㄕㄚㄩˊ',es:'tiburón',en:'shark'},
+ {zh:'章魚',sc:'章鱼',py:'zhāngyú',zy:'ㄓㄤㄩˊ',es:'pulpo',en:'octopus'},
+ {zh:'螃蟹',sc:'螃蟹',py:'pángxiè',zy:'ㄆㄤˊㄒㄧㄝˋ',es:'cangrejo',en:'crab'},
+ {zh:'蝦子',sc:'虾子',py:'xiāzi',zy:'ㄒㄧㄚ˙ㄗ',es:'camarón',en:'shrimp'},
+ {zh:'海星',sc:'海星',py:'hǎixīng',zy:'ㄏㄞˇㄒㄧㄥ',es:'estrella de mar',en:'starfish'},
+ {zh:'水母',sc:'水母',py:'shuǐmǔ',zy:'ㄕㄨㄟˇㄇㄨˇ',es:'medusa',en:'jellyfish'},
+ {zh:'鱷魚',sc:'鳄鱼',py:'èyú',zy:'ㄜˋㄩˊ',es:'cocodrilo',en:'crocodile'},
+ {zh:'蜥蜴',sc:'蜥蜴',py:'xīyì',zy:'ㄒㄧㄧˋ',es:'lagartija',en:'lizard'},
+ {zh:'蜜蜂',sc:'蜜蜂',py:'mìfēng',zy:'ㄇㄧˋㄈㄥ',es:'abeja',en:'bee'},
+ {zh:'螞蟻',sc:'蚂蚁',py:'mǎyǐ',zy:'ㄇㄚˇㄧˇ',es:'hormiga',en:'ant'},
+ {zh:'蜘蛛',sc:'蜘蛛',py:'zhīzhū',zy:'ㄓㄓㄨ',es:'araña',en:'spider'},
+ {zh:'蚊子',sc:'蚊子',py:'wénzi',zy:'ㄨㄣˊ˙ㄗ',es:'mosquito',en:'mosquito'},
+ {zh:'蒼蠅',sc:'苍蝇',py:'cāngying',zy:'ㄘㄤ˙ㄧㄥ',es:'mosca',en:'fly'},
+ {zh:'蟑螂',sc:'蟑螂',py:'zhāngláng',zy:'ㄓㄤㄌㄤˊ',es:'cucaracha',en:'cockroach'},
+ {zh:'蜻蜓',sc:'蜻蜓',py:'qīngtíng',zy:'ㄑㄧㄥㄊㄧㄥˊ',es:'libélula',en:'dragonfly'},
+ {zh:'蝸牛',sc:'蜗牛',py:'wōniú',zy:'ㄨㄛㄋㄧㄡˊ',es:'caracol',en:'snail'},
+ {zh:'毛毛蟲',sc:'毛毛虫',py:'máomáochóng',zy:'ㄇㄠˊㄇㄠˊㄔㄨㄥˊ',es:'oruga',en:'caterpillar'},
+ {zh:'螢火蟲',sc:'萤火虫',py:'yínghuǒchóng',zy:'ㄧㄥˊㄏㄨㄛˇㄔㄨㄥˊ',es:'luciérnaga',en:'firefly'},
+ {zh:'小狗',sc:'小狗',py:'xiǎogǒu',zy:'ㄒㄧㄠˇㄍㄡˇ',es:'cachorro',en:'puppy'},
+ {zh:'公雞',sc:'公鸡',py:'gōngjī',zy:'ㄍㄨㄥㄐㄧ',es:'gallo',en:'rooster'},
+ {zh:'小雞',sc:'小鸡',py:'xiǎojī',zy:'ㄒㄧㄠˇㄐㄧ',es:'pollito',en:'chick'},
+ {zh:'山羊',sc:'山羊',py:'shānyáng',zy:'ㄕㄢㄧㄤˊ',es:'cabra',en:'goat'},
+ {zh:'驢子',sc:'驴子',py:'lǘzi',zy:'ㄌㄩˊ˙ㄗ',es:'burro',en:'donkey'},
+ {zh:'豹',sc:'豹',py:'bào',zy:'ㄅㄠˋ',es:'leopardo',en:'leopard'},
+ {zh:'北極熊',sc:'北极熊',py:'běijíxióng',zy:'ㄅㄟˇㄐㄧˊㄒㄩㄥˊ',es:'oso polar',en:'polar bear'},
+ {zh:'海豹',sc:'海豹',py:'hǎibào',zy:'ㄏㄞˇㄅㄠˋ',es:'foca',en:'seal'},
+ {zh:'鯉魚',sc:'鲤鱼',py:'lǐyú',zy:'ㄌㄧˇㄩˊ',es:'carpa',en:'carp'},
+ {zh:'金魚',sc:'金鱼',py:'jīnyú',zy:'ㄐㄧㄣㄩˊ',es:'pez dorado',en:'goldfish'},
+ {zh:'鳳凰',sc:'凤凰',py:'fènghuáng',zy:'ㄈㄥˋㄏㄨㄤˊ',es:'fénix',en:'phoenix'},
+ {zh:'恐龍',sc:'恐龙',py:'kǒnglóng',zy:'ㄎㄨㄥˇㄌㄨㄥˊ',es:'dinosaurio',en:'dinosaur'},
+ {zh:'天鵝',sc:'天鹅',py:'tiān\'é',zy:'ㄊㄧㄢㄜˊ',es:'cisne',en:'swan'},
+ {zh:'海鷗',sc:'海鸥',py:'hǎi\'ōu',zy:'ㄏㄞˇㄡ',es:'gaviota',en:'seagull'},
+ {zh:'火雞',sc:'火鸡',py:'huǒjī',zy:'ㄏㄨㄛˇㄐㄧ',es:'pavo',en:'turkey'},
+ {zh:'紅色',sc:'红色',py:'hóngsè',zy:'ㄏㄨㄥˊㄙㄜˋ',es:'rojo',en:'red'},
+ {zh:'藍色',sc:'蓝色',py:'lánsè',zy:'ㄌㄢˊㄙㄜˋ',es:'azul',en:'blue'},
+ {zh:'綠色',sc:'绿色',py:'lǜsè',zy:'ㄌㄩˋㄙㄜˋ',es:'verde',en:'green'},
+ {zh:'黃色',sc:'黄色',py:'huángsè',zy:'ㄏㄨㄤˊㄙㄜˋ',es:'amarillo',en:'yellow'},
+ {zh:'白色',sc:'白色',py:'báisè',zy:'ㄅㄞˊㄙㄜˋ',es:'blanco',en:'white'},
+ {zh:'黑色',sc:'黑色',py:'hēisè',zy:'ㄏㄟㄙㄜˋ',es:'negro',en:'black'},
+ {zh:'紫色',sc:'紫色',py:'zǐsè',zy:'ㄗˇㄙㄜˋ',es:'morado',en:'purple'},
+ {zh:'粉紅色',sc:'粉红色',py:'fěnhóngsè',zy:'ㄈㄣˇㄏㄨㄥˊㄙㄜˋ',es:'rosa',en:'pink'},
+ {zh:'橘色',sc:'橘色',py:'júsè',zy:'ㄐㄩˊㄙㄜˋ',es:'naranja',en:'orange'},
+ {zh:'灰色',sc:'灰色',py:'huīsè',zy:'ㄏㄨㄟㄙㄜˋ',es:'gris',en:'gray'},
+ {zh:'咖啡色',sc:'咖啡色',py:'kāfēisè',zy:'ㄎㄚㄈㄟㄙㄜˋ',es:'café',en:'brown'},
+ {zh:'金色',sc:'金色',py:'jīnsè',zy:'ㄐㄧㄣㄙㄜˋ',es:'dorado',en:'gold'},
+ {zh:'深藍色',sc:'深蓝色',py:'shēnlánsè',zy:'ㄕㄣㄌㄢˊㄙㄜˋ',es:'azul oscuro',en:'dark blue'},
+ {zh:'淺藍色',sc:'浅蓝色',py:'qiǎnlánsè',zy:'ㄑㄧㄢˇㄌㄢˊㄙㄜˋ',es:'celeste',en:'light blue'},
+ {zh:'米色',sc:'米色',py:'mǐsè',zy:'ㄇㄧˇㄙㄜˋ',es:'beige',en:'beige'},
+ {zh:'銀色',sc:'银色',py:'yínsè',zy:'ㄧㄣˊㄙㄜˋ',es:'plateado',en:'silver'},
+ {zh:'透明',sc:'透明',py:'tòumíng',zy:'ㄊㄡˋㄇㄧㄥˊ',es:'transparente',en:'transparent'},
+ {zh:'彩色',sc:'彩色',py:'cǎisè',zy:'ㄘㄞˇㄙㄜˋ',es:'de colores',en:'colorful'},
+ {zh:'橙色',sc:'橙色',py:'chéngsè',zy:'ㄔㄥˊㄙㄜˋ',es:'anaranjado',en:'orange (deep)'},
+ {zh:'深綠色',sc:'深绿色',py:'shēnlǜsè',zy:'ㄕㄣㄌㄩˋㄙㄜˋ',es:'verde oscuro',en:'dark green'},
+ {zh:'天藍色',sc:'天蓝色',py:'tiānlánsè',zy:'ㄊㄧㄢㄌㄢˊㄙㄜˋ',es:'azul cielo',en:'sky blue'},
+ {zh:'草綠色',sc:'草绿色',py:'cǎolǜsè',zy:'ㄘㄠˇㄌㄩˋㄙㄜˋ',es:'verde pasto',en:'grass green'},
+ {zh:'橄欖綠',sc:'橄榄绿',py:'gǎnlǎnlǜ',zy:'ㄍㄢˇㄌㄢˇㄌㄩˋ',es:'verde oliva',en:'olive green'},
+ {zh:'酒紅色',sc:'酒红色',py:'jiǔhóngsè',zy:'ㄐㄧㄡˇㄏㄨㄥˊㄙㄜˋ',es:'vino tinto',en:'burgundy'},
+ {zh:'桃紅色',sc:'桃红色',py:'táohóngsè',zy:'ㄊㄠˊㄏㄨㄥˊㄙㄜˋ',es:'fucsia',en:'hot pink'},
+ {zh:'淺綠色',sc:'浅绿色',py:'qiǎnlǜsè',zy:'ㄑㄧㄢˇㄌㄩˋㄙㄜˋ',es:'verde claro',en:'light green'},
+ {zh:'淺黃色',sc:'浅黄色',py:'qiǎnhuángsè',zy:'ㄑㄧㄢˇㄏㄨㄤˊㄙㄜˋ',es:'amarillo claro',en:'light yellow'},
+ {zh:'深紅色',sc:'深红色',py:'shēnhóngsè',zy:'ㄕㄣㄏㄨㄥˊㄙㄜˋ',es:'rojo oscuro',en:'dark red'},
+ {zh:'深灰色',sc:'深灰色',py:'shēnhuīsè',zy:'ㄕㄣㄏㄨㄟㄙㄜˋ',es:'gris oscuro',en:'dark gray'},
+ {zh:'卡其色',sc:'卡其色',py:'kǎqísè',zy:'ㄎㄚˇㄑㄧˊㄙㄜˋ',es:'caqui',en:'khaki'},
+ {zh:'奶油色',sc:'奶油色',py:'nǎiyóusè',zy:'ㄋㄞˇㄧㄡˊㄙㄜˋ',es:'color crema',en:'cream'},
+ {zh:'米白色',sc:'米白色',py:'mǐbáisè',zy:'ㄇㄧˇㄅㄞˊㄙㄜˋ',es:'blanco hueso',en:'off-white'},
+ {zh:'土黃色',sc:'土黄色',py:'tǔhuángsè',zy:'ㄊㄨˇㄏㄨㄤˊㄙㄜˋ',es:'ocre',en:'ochre'},
+ {zh:'青色',sc:'青色',py:'qīngsè',zy:'ㄑㄧㄥㄙㄜˋ',es:'cian',en:'cyan'},
+ {zh:'膚色',sc:'肤色',py:'fūsè',zy:'ㄈㄨㄙㄜˋ',es:'color piel',en:'skin tone'},
+ {zh:'金黃色',sc:'金黄色',py:'jīnhuángsè',zy:'ㄐㄧㄣㄏㄨㄤˊㄙㄜˋ',es:'amarillo dorado',en:'golden yellow'},
+ {zh:'深紫色',sc:'深紫色',py:'shēnzǐsè',zy:'ㄕㄣㄗˇㄙㄜˋ',es:'morado oscuro',en:'dark purple'},
+ {zh:'淺紫色',sc:'浅紫色',py:'qiǎnzǐsè',zy:'ㄑㄧㄢˇㄗˇㄙㄜˋ',es:'lila',en:'lilac'},
+ {zh:'橘紅色',sc:'橘红色',py:'júhóngsè',zy:'ㄐㄩˊㄏㄨㄥˊㄙㄜˋ',es:'rojo anaranjado',en:'orange-red'},
+ {zh:'黑白',sc:'黑白',py:'hēibái',zy:'ㄏㄟㄅㄞˊ',es:'blanco y negro',en:'black and white'},
+ {zh:'淺粉紅色',sc:'浅粉红色',py:'qiǎnfěnhóngsè',zy:'ㄑㄧㄢˇㄈㄣˇㄏㄨㄥˊㄙㄜˋ',es:'rosa claro',en:'light pink'},
+ {zh:'淺灰色',sc:'浅灰色',py:'qiǎnhuīsè',zy:'ㄑㄧㄢˇㄏㄨㄟㄙㄜˋ',es:'gris claro',en:'light gray'},
+ {zh:'深咖啡色',sc:'深咖啡色',py:'shēnkāfēisè',zy:'ㄕㄣㄎㄚㄈㄟㄙㄜˋ',es:'café oscuro',en:'dark brown'},
+ {zh:'淺咖啡色',sc:'浅咖啡色',py:'qiǎnkāfēisè',zy:'ㄑㄧㄢˇㄎㄚㄈㄟㄙㄜˋ',es:'café claro',en:'light brown'},
+ {zh:'公車',sc:'公车',py:'gōngchē',zy:'ㄍㄨㄥㄔㄜ',es:'autobús',en:'bus'},
+ {zh:'捷運',sc:'捷运',py:'jiéyùn',zy:'ㄐㄧㄝˊㄩㄣˋ',es:'metro',en:'MRT'},
+ {zh:'火車',sc:'火车',py:'huǒchē',zy:'ㄏㄨㄛˇㄔㄜ',es:'tren',en:'train'},
+ {zh:'飛機',sc:'飞机',py:'fēijī',zy:'ㄈㄟㄐㄧ',es:'avión',en:'airplane'},
+ {zh:'計程車',sc:'计程车',py:'jìchéngchē',zy:'ㄐㄧˋㄔㄥˊㄔㄜ',es:'taxi',en:'taxi'},
+ {zh:'腳踏車',sc:'脚踏车',py:'jiǎotàchē',zy:'ㄐㄧㄠˇㄊㄚˋㄔㄜ',es:'bicicleta',en:'bicycle'},
+ {zh:'機車',sc:'机车',py:'jīchē',zy:'ㄐㄧㄔㄜ',es:'moto',en:'scooter'},
+ {zh:'汽車',sc:'汽车',py:'qìchē',zy:'ㄑㄧˋㄔㄜ',es:'carro',en:'car'},
+ {zh:'船',sc:'船',py:'chuán',zy:'ㄔㄨㄢˊ',es:'barco',en:'boat'},
+ {zh:'高鐵',sc:'高铁',py:'gāotiě',zy:'ㄍㄠㄊㄧㄝˇ',es:'tren bala',en:'high-speed rail'},
+ {zh:'卡車',sc:'卡车',py:'kǎchē',zy:'ㄎㄚˇㄔㄜ',es:'camión',en:'truck'},
+ {zh:'救護車',sc:'救护车',py:'jiùhùchē',zy:'ㄐㄧㄡˋㄏㄨˋㄔㄜ',es:'ambulancia',en:'ambulance'},
+ {zh:'消防車',sc:'消防车',py:'xiāofángchē',zy:'ㄒㄧㄠㄈㄤˊㄔㄜ',es:'camión de bomberos',en:'fire truck'},
+ {zh:'警車',sc:'警车',py:'jǐngchē',zy:'ㄐㄧㄥˇㄔㄜ',es:'patrulla',en:'police car'},
+ {zh:'直升機',sc:'直升机',py:'zhíshēngjī',zy:'ㄓˊㄕㄥㄐㄧ',es:'helicóptero',en:'helicopter'},
+ {zh:'紅綠燈',sc:'红绿灯',py:'hónglǜdēng',zy:'ㄏㄨㄥˊㄌㄩˋㄉㄥ',es:'semáforo',en:'traffic light'},
+ {zh:'斑馬線',sc:'斑马线',py:'bānmǎxiàn',zy:'ㄅㄢㄇㄚˇㄒㄧㄢˋ',es:'paso de peatones',en:'crosswalk'},
+ {zh:'機場',sc:'机场',py:'jīchǎng',zy:'ㄐㄧㄔㄤˇ',es:'aeropuerto',en:'airport'},
+ {zh:'車站',sc:'车站',py:'chēzhàn',zy:'ㄔㄜㄓㄢˋ',es:'estación',en:'station'},
+ {zh:'馬路',sc:'马路',py:'mǎlù',zy:'ㄇㄚˇㄌㄨˋ',es:'calle',en:'road'},
+ {zh:'公車站',sc:'公车站',py:'gōngchēzhàn',zy:'ㄍㄨㄥㄔㄜㄓㄢˋ',es:'parada de autobús',en:'bus stop'},
+ {zh:'捷運站',sc:'捷运站',py:'jiéyùnzhàn',zy:'ㄐㄧㄝˊㄩㄣˋㄓㄢˋ',es:'estación de metro',en:'MRT station'},
+ {zh:'火車站',sc:'火车站',py:'huǒchēzhàn',zy:'ㄏㄨㄛˇㄔㄜㄓㄢˋ',es:'estación de tren',en:'train station'},
+ {zh:'摩托車',sc:'摩托车',py:'mótuōchē',zy:'ㄇㄛˊㄊㄨㄛㄔㄜ',es:'motocicleta',en:'motorcycle'},
+ {zh:'電動車',sc:'电动车',py:'diàndòngchē',zy:'ㄉㄧㄢˋㄉㄨㄥˋㄔㄜ',es:'vehículo eléctrico',en:'electric vehicle'},
+ {zh:'貨車',sc:'货车',py:'huòchē',zy:'ㄏㄨㄛˋㄔㄜ',es:'camioneta de carga',en:'delivery truck'},
+ {zh:'遊覽車',sc:'游览车',py:'yóulǎnchē',zy:'ㄧㄡˊㄌㄢˇㄔㄜ',es:'autobús turístico',en:'tour bus'},
+ {zh:'纜車',sc:'缆车',py:'lǎnchē',zy:'ㄌㄢˇㄔㄜ',es:'teleférico',en:'cable car'},
+ {zh:'渡輪',sc:'渡轮',py:'dùlún',zy:'ㄉㄨˋㄌㄨㄣˊ',es:'ferry',en:'ferry'},
+ {zh:'火箭',sc:'火箭',py:'huǒjiàn',zy:'ㄏㄨㄛˇㄐㄧㄢˋ',es:'cohete',en:'rocket'},
+ {zh:'熱氣球',sc:'热气球',py:'rèqìqiú',zy:'ㄖㄜˋㄑㄧˋㄑㄧㄡˊ',es:'globo aerostático',en:'hot air balloon'},
+ {zh:'滑板車',sc:'滑板车',py:'huábǎnchē',zy:'ㄏㄨㄚˊㄅㄢˇㄔㄜ',es:'scooter de patada',en:'kick scooter'},
+ {zh:'輪胎',sc:'轮胎',py:'lúntāi',zy:'ㄌㄨㄣˊㄊㄞ',es:'llanta',en:'tire'},
+ {zh:'方向盤',sc:'方向盘',py:'fāngxiàngpán',zy:'ㄈㄤㄒㄧㄤˋㄆㄢˊ',es:'volante',en:'steering wheel'},
+ {zh:'安全帶',sc:'安全带',py:'ānquándài',zy:'ㄢㄑㄩㄢˊㄉㄞˋ',es:'cinturón de seguridad',en:'seat belt'},
+ {zh:'安全帽',sc:'安全帽',py:'ānquánmào',zy:'ㄢㄑㄩㄢˊㄇㄠˋ',es:'casco',en:'helmet'},
+ {zh:'車票',sc:'车票',py:'chēpiào',zy:'ㄔㄜㄆㄧㄠˋ',es:'boleto',en:'ticket'},
+ {zh:'悠遊卡',sc:'悠游卡',py:'yōuyóukǎ',zy:'ㄧㄡㄧㄡˊㄎㄚˇ',es:'tarjeta EasyCard',en:'EasyCard'},
+ {zh:'加油站',sc:'加油站',py:'jiāyóuzhàn',zy:'ㄐㄧㄚㄧㄡˊㄓㄢˋ',es:'gasolinera',en:'gas station'},
+ {zh:'停車場',sc:'停车场',py:'tíngchēchǎng',zy:'ㄊㄧㄥˊㄔㄜㄔㄤˇ',es:'estacionamiento',en:'parking lot'},
+ {zh:'路口',sc:'路口',py:'lùkǒu',zy:'ㄌㄨˋㄎㄡˇ',es:'cruce',en:'intersection'},
+ {zh:'橋',sc:'桥',py:'qiáo',zy:'ㄑㄧㄠˊ',es:'puente',en:'bridge'},
+ {zh:'隧道',sc:'隧道',py:'suìdào',zy:'ㄙㄨㄟˋㄉㄠˋ',es:'túnel',en:'tunnel'},
+ {zh:'高速公路',sc:'高速公路',py:'gāosùgōnglù',zy:'ㄍㄠㄙㄨˋㄍㄨㄥㄌㄨˋ',es:'autopista',en:'highway'},
+ {zh:'人行道',sc:'人行道',py:'rénxíngdào',zy:'ㄖㄣˊㄒㄧㄥˊㄉㄠˋ',es:'acera',en:'sidewalk'},
+ {zh:'地圖',sc:'地图',py:'dìtú',zy:'ㄉㄧˋㄊㄨˊ',es:'mapa',en:'map'},
+ {zh:'港口',sc:'港口',py:'gǎngkǒu',zy:'ㄍㄤˇㄎㄡˇ',es:'puerto',en:'port'},
+ {zh:'碼頭',sc:'码头',py:'mǎtóu',zy:'ㄇㄚˇㄊㄡˊ',es:'muelle',en:'pier'},
+ {zh:'行李',sc:'行李',py:'xíngli',zy:'ㄒㄧㄥˊ˙ㄌㄧ',es:'equipaje',en:'luggage'},
+ {zh:'護照',sc:'护照',py:'hùzhào',zy:'ㄏㄨˋㄓㄠˋ',es:'pasaporte',en:'passport'},
+ {zh:'路標',sc:'路标',py:'lùbiāo',zy:'ㄌㄨˋㄅㄧㄠ',es:'señal de tránsito',en:'road sign'},
+ {zh:'地鐵',sc:'地铁',py:'dìtiě',zy:'ㄉㄧˋㄊㄧㄝˇ',es:'metro',en:'subway'},
+ {zh:'單車',sc:'单车',py:'dānchē',zy:'ㄉㄢㄔㄜ',es:'bicicleta',en:'bike'},
+ {zh:'月台',sc:'月台',py:'yuètái',zy:'ㄩㄝˋㄊㄞˊ',es:'andén',en:'platform'},
+ {zh:'售票機',sc:'售票机',py:'shòupiàojī',zy:'ㄕㄡˋㄆㄧㄠˋㄐㄧ',es:'máquina de boletos',en:'ticket machine'},
+ {zh:'候車室',sc:'候车室',py:'hòuchēshì',zy:'ㄏㄡˋㄔㄜㄕˋ',es:'sala de espera',en:'waiting room'},
+ {zh:'航廈',sc:'航厦',py:'hángxià',zy:'ㄏㄤˊㄒㄧㄚˋ',es:'terminal',en:'terminal'},
+ {zh:'登機門',sc:'登机门',py:'dēngjīmén',zy:'ㄉㄥㄐㄧㄇㄣˊ',es:'puerta de embarque',en:'boarding gate'},
+ {zh:'飛機票',sc:'飞机票',py:'fēijīpiào',zy:'ㄈㄟㄐㄧㄆㄧㄠˋ',es:'boleto de avión',en:'plane ticket'},
+ {zh:'行人',sc:'行人',py:'xíngrén',zy:'ㄒㄧㄥˊㄖㄣˊ',es:'peatón',en:'pedestrian'},
+ {zh:'車道',sc:'车道',py:'chēdào',zy:'ㄔㄜㄉㄠˋ',es:'carril',en:'traffic lane'},
+ {zh:'十字路口',sc:'十字路口',py:'shízìlùkǒu',zy:'ㄕˊㄗˋㄌㄨˋㄎㄡˇ',es:'crucero',en:'crossroads'},
+ {zh:'單行道',sc:'单行道',py:'dānxíngdào',zy:'ㄉㄢㄒㄧㄥˊㄉㄠˋ',es:'calle de un sentido',en:'one-way street'},
+ {zh:'轉彎',sc:'转弯',py:'zhuǎnwān',zy:'ㄓㄨㄢˇㄨㄢ',es:'dar vuelta',en:'to turn'},
+ {zh:'塞車',sc:'塞车',py:'sāichē',zy:'ㄙㄞㄔㄜ',es:'tráfico',en:'traffic jam'},
+ {zh:'頭',sc:'头',py:'tóu',zy:'ㄊㄡˊ',es:'cabeza',en:'head'},
+ {zh:'手',sc:'手',py:'shǒu',zy:'ㄕㄡˇ',es:'mano',en:'hand'},
+ {zh:'腳',sc:'脚',py:'jiǎo',zy:'ㄐㄧㄠˇ',es:'pie',en:'foot'},
+ {zh:'眼睛',sc:'眼睛',py:'yǎnjing',zy:'ㄧㄢˇ˙ㄐㄧㄥ',es:'ojos',en:'eyes'},
+ {zh:'耳朵',sc:'耳朵',py:'ěrduo',zy:'ㄜˇ˙ㄉㄨㄛ',es:'oreja',en:'ear'},
+ {zh:'鼻子',sc:'鼻子',py:'bízi',zy:'ㄅㄧˊ˙ㄗ',es:'nariz',en:'nose'},
+ {zh:'嘴巴',sc:'嘴巴',py:'zuǐba',zy:'ㄗㄨㄟˇ˙ㄅㄚ',es:'boca',en:'mouth'},
+ {zh:'肚子',sc:'肚子',py:'dùzi',zy:'ㄉㄨˋ˙ㄗ',es:'barriga',en:'belly'},
+ {zh:'牙齒',sc:'牙齿',py:'yáchǐ',zy:'ㄧㄚˊㄔˇ',es:'dientes',en:'teeth'},
+ {zh:'頭髮',sc:'头发',py:'tóufa',zy:'ㄊㄡˊ˙ㄈㄚ',es:'cabello',en:'hair'},
+ {zh:'肩膀',sc:'肩膀',py:'jiānbǎng',zy:'ㄐㄧㄢㄅㄤˇ',es:'hombro',en:'shoulder'},
+ {zh:'膝蓋',sc:'膝盖',py:'xīgài',zy:'ㄒㄧㄍㄞˋ',es:'rodilla',en:'knee'},
+ {zh:'臉',sc:'脸',py:'liǎn',zy:'ㄌㄧㄢˇ',es:'cara',en:'face'},
+ {zh:'脖子',sc:'脖子',py:'bózi',zy:'ㄅㄛˊ˙ㄗ',es:'cuello',en:'neck'},
+ {zh:'背',sc:'背',py:'bèi',zy:'ㄅㄟˋ',es:'espalda',en:'back'},
+ {zh:'手指',sc:'手指',py:'shǒuzhǐ',zy:'ㄕㄡˇㄓˇ',es:'dedo',en:'finger'},
+ {zh:'腿',sc:'腿',py:'tuǐ',zy:'ㄊㄨㄟˇ',es:'pierna',en:'leg'},
+ {zh:'手臂',sc:'手臂',py:'shǒubì',zy:'ㄕㄡˇㄅㄧˋ',es:'brazo',en:'arm'},
+ {zh:'腰',sc:'腰',py:'yāo',zy:'ㄧㄠ',es:'cintura',en:'waist'},
+ {zh:'嘴唇',sc:'嘴唇',py:'zuǐchún',zy:'ㄗㄨㄟˇㄔㄨㄣˊ',es:'labios',en:'lips'},
+ {zh:'手腕',sc:'手腕',py:'shǒuwàn',zy:'ㄕㄡˇㄨㄢˋ',es:'muñeca',en:'wrist'},
+ {zh:'腳踝',sc:'脚踝',py:'jiǎohuái',zy:'ㄐㄧㄠˇㄏㄨㄞˊ',es:'tobillo',en:'ankle'},
+ {zh:'腳趾',sc:'脚趾',py:'jiǎozhǐ',zy:'ㄐㄧㄠˇㄓˇ',es:'dedo del pie',en:'toe'},
+ {zh:'大拇指',sc:'大拇指',py:'dàmǔzhǐ',zy:'ㄉㄚˋㄇㄨˇㄓˇ',es:'pulgar',en:'thumb'},
+ {zh:'指甲',sc:'指甲',py:'zhǐjia',zy:'ㄓˇ˙ㄐㄧㄚ',es:'uña',en:'nail'},
+ {zh:'手掌',sc:'手掌',py:'shǒuzhǎng',zy:'ㄕㄡˇㄓㄤˇ',es:'palma',en:'palm'},
+ {zh:'拳頭',sc:'拳头',py:'quántou',zy:'ㄑㄩㄢˊ˙ㄊㄡ',es:'puño',en:'fist'},
+ {zh:'手肘',sc:'手肘',py:'shǒuzhǒu',zy:'ㄕㄡˇㄓㄡˇ',es:'codo',en:'elbow'},
+ {zh:'胸部',sc:'胸部',py:'xiōngbù',zy:'ㄒㄩㄥㄅㄨˋ',es:'pecho',en:'chest'},
+ {zh:'額頭',sc:'额头',py:'étóu',zy:'ㄜˊㄊㄡˊ',es:'frente',en:'forehead'},
+ {zh:'眉毛',sc:'眉毛',py:'méimao',zy:'ㄇㄟˊ˙ㄇㄠ',es:'ceja',en:'eyebrow'},
+ {zh:'睫毛',sc:'睫毛',py:'jiémáo',zy:'ㄐㄧㄝˊㄇㄠˊ',es:'pestaña',en:'eyelash'},
+ {zh:'臉頰',sc:'脸颊',py:'liǎnjiá',zy:'ㄌㄧㄢˇㄐㄧㄚˊ',es:'mejilla',en:'cheek'},
+ {zh:'下巴',sc:'下巴',py:'xiàba',zy:'ㄒㄧㄚˋ˙ㄅㄚ',es:'barbilla',en:'chin'},
+ {zh:'舌頭',sc:'舌头',py:'shétou',zy:'ㄕㄜˊ˙ㄊㄡ',es:'lengua',en:'tongue'},
+ {zh:'喉嚨',sc:'喉咙',py:'hóulóng',zy:'ㄏㄡˊㄌㄨㄥˊ',es:'garganta',en:'throat'},
+ {zh:'鬍子',sc:'胡子',py:'húzi',zy:'ㄏㄨˊ˙ㄗ',es:'barba',en:'beard'},
+ {zh:'皮膚',sc:'皮肤',py:'pífū',zy:'ㄆㄧˊㄈㄨ',es:'piel',en:'skin'},
+ {zh:'骨頭',sc:'骨头',py:'gǔtou',zy:'ㄍㄨˇ˙ㄊㄡ',es:'hueso',en:'bone'},
+ {zh:'肌肉',sc:'肌肉',py:'jīròu',zy:'ㄐㄧㄖㄡˋ',es:'músculo',en:'muscle'},
+ {zh:'血',sc:'血',py:'xiě',zy:'ㄒㄧㄝˇ',es:'sangre',en:'blood'},
+ {zh:'心臟',sc:'心脏',py:'xīnzàng',zy:'ㄒㄧㄣㄗㄤˋ',es:'corazón',en:'heart'},
+ {zh:'肺',sc:'肺',py:'fèi',zy:'ㄈㄟˋ',es:'pulmón',en:'lung'},
+ {zh:'胃',sc:'胃',py:'wèi',zy:'ㄨㄟˋ',es:'estómago',en:'stomach'},
+ {zh:'大腦',sc:'大脑',py:'dànǎo',zy:'ㄉㄚˋㄋㄠˇ',es:'cerebro',en:'brain'},
+ {zh:'汗',sc:'汗',py:'hàn',zy:'ㄏㄢˋ',es:'sudor',en:'sweat'},
+ {zh:'眼淚',sc:'眼泪',py:'yǎnlèi',zy:'ㄧㄢˇㄌㄟˋ',es:'lágrimas',en:'tears'},
+ {zh:'大腿',sc:'大腿',py:'dàtuǐ',zy:'ㄉㄚˋㄊㄨㄟˇ',es:'muslo',en:'thigh'},
+ {zh:'小腿',sc:'小腿',py:'xiǎotuǐ',zy:'ㄒㄧㄠˇㄊㄨㄟˇ',es:'pantorrilla',en:'calf'},
+ {zh:'腳底',sc:'脚底',py:'jiǎodǐ',zy:'ㄐㄧㄠˇㄉㄧˇ',es:'planta del pie',en:'sole of the foot'},
+ {zh:'手心',sc:'手心',py:'shǒuxīn',zy:'ㄕㄡˇㄒㄧㄣ',es:'palma de la mano',en:'palm of the hand'},
+ {zh:'關節',sc:'关节',py:'guānjié',zy:'ㄍㄨㄢㄐㄧㄝˊ',es:'articulación',en:'joint'},
+ {zh:'肚臍',sc:'肚脐',py:'dùqí',zy:'ㄉㄨˋㄑㄧˊ',es:'ombligo',en:'belly button'},
+ {zh:'腳後跟',sc:'脚后跟',py:'jiǎohòugēn',zy:'ㄐㄧㄠˇㄏㄡˋㄍㄣ',es:'talón',en:'heel'},
+ {zh:'中指',sc:'中指',py:'zhōngzhǐ',zy:'ㄓㄨㄥㄓˇ',es:'dedo medio',en:'middle finger'},
+ {zh:'食指',sc:'食指',py:'shízhǐ',zy:'ㄕˊㄓˇ',es:'dedo índice',en:'index finger'},
+ {zh:'小指',sc:'小指',py:'xiǎozhǐ',zy:'ㄒㄧㄠˇㄓˇ',es:'dedo meñique',en:'pinky finger'},
+ {zh:'頭頂',sc:'头顶',py:'tóudǐng',zy:'ㄊㄡˊㄉㄧㄥˇ',es:'coronilla',en:'top of the head'},
+ {zh:'耳垂',sc:'耳垂',py:'ěrchuí',zy:'ㄜˇㄔㄨㄟˊ',es:'lóbulo de la oreja',en:'earlobe'},
+ {zh:'眼皮',sc:'眼皮',py:'yǎnpí',zy:'ㄧㄢˇㄆㄧˊ',es:'párpado',en:'eyelid'},
+ {zh:'鼻孔',sc:'鼻孔',py:'bíkǒng',zy:'ㄅㄧˊㄎㄨㄥˇ',es:'fosa nasal',en:'nostril'},
+ {zh:'襯衫',sc:'衬衫',py:'chènshān',zy:'ㄔㄣˋㄕㄢ',es:'camisa',en:'shirt'},
+ {zh:'褲子',sc:'裤子',py:'kùzi',zy:'ㄎㄨˋ˙ㄗ',es:'pantalones',en:'pants'},
+ {zh:'裙子',sc:'裙子',py:'qúnzi',zy:'ㄑㄩㄣˊ˙ㄗ',es:'falda',en:'skirt'},
+ {zh:'外套',sc:'外套',py:'wàitào',zy:'ㄨㄞˋㄊㄠˋ',es:'chaqueta',en:'jacket'},
+ {zh:'帽子',sc:'帽子',py:'màozi',zy:'ㄇㄠˋ˙ㄗ',es:'gorro',en:'hat'},
+ {zh:'鞋子',sc:'鞋子',py:'xiézi',zy:'ㄒㄧㄝˊ˙ㄗ',es:'zapatos',en:'shoes'},
+ {zh:'襪子',sc:'袜子',py:'wàzi',zy:'ㄨㄚˋ˙ㄗ',es:'calcetines',en:'socks'},
+ {zh:'眼鏡',sc:'眼镜',py:'yǎnjìng',zy:'ㄧㄢˇㄐㄧㄥˋ',es:'lentes',en:'glasses'},
+ {zh:'手錶',sc:'手表',py:'shǒubiǎo',zy:'ㄕㄡˇㄅㄧㄠˇ',es:'reloj',en:'watch'},
+ {zh:'皮包',sc:'皮包',py:'píbāo',zy:'ㄆㄧˊㄅㄠ',es:'bolso',en:'handbag'},
+ {zh:'圍巾',sc:'围巾',py:'wéijīn',zy:'ㄨㄟˊㄐㄧㄣ',es:'bufanda',en:'scarf'},
+ {zh:'手套',sc:'手套',py:'shǒutào',zy:'ㄕㄡˇㄊㄠˋ',es:'guantes',en:'gloves'},
+ {zh:'領帶',sc:'领带',py:'lǐngdài',zy:'ㄌㄧㄥˇㄉㄞˋ',es:'corbata',en:'tie'},
+ {zh:'洋裝',sc:'洋装',py:'yángzhuāng',zy:'ㄧㄤˊㄓㄨㄤ',es:'vestido',en:'dress'},
+ {zh:'牛仔褲',sc:'牛仔裤',py:'niúzǎikù',zy:'ㄋㄧㄡˊㄗㄞˇㄎㄨˋ',es:'jeans',en:'jeans'},
+ {zh:'雨衣',sc:'雨衣',py:'yǔyī',zy:'ㄩˇㄧ',es:'impermeable',en:'raincoat'},
+ {zh:'拖鞋',sc:'拖鞋',py:'tuōxié',zy:'ㄊㄨㄛㄒㄧㄝˊ',es:'chancletas',en:'slippers'},
+ {zh:'項鍊',sc:'项链',py:'xiàngliàn',zy:'ㄒㄧㄤˋㄌㄧㄢˋ',es:'collar',en:'necklace'},
+ {zh:'口罩',sc:'口罩',py:'kǒuzhào',zy:'ㄎㄡˇㄓㄠˋ',es:'mascarilla',en:'face mask'},
+ {zh:'運動鞋',sc:'运动鞋',py:'yùndòngxié',zy:'ㄩㄣˋㄉㄨㄥˋㄒㄧㄝˊ',es:'tenis',en:'sneakers'},
+ {zh:'短袖',sc:'短袖',py:'duǎnxiù',zy:'ㄉㄨㄢˇㄒㄧㄡˋ',es:'manga corta',en:'short sleeve'},
+ {zh:'長袖',sc:'长袖',py:'chángxiù',zy:'ㄔㄤˊㄒㄧㄡˋ',es:'manga larga',en:'long sleeve'},
+ {zh:'短褲',sc:'短裤',py:'duǎnkù',zy:'ㄉㄨㄢˇㄎㄨˋ',es:'shorts',en:'shorts'},
+ {zh:'長褲',sc:'长裤',py:'chángkù',zy:'ㄔㄤˊㄎㄨˋ',es:'pantalón largo',en:'long pants'},
+ {zh:'內衣',sc:'内衣',py:'nèiyī',zy:'ㄋㄟˋㄧ',es:'ropa interior',en:'underwear'},
+ {zh:'睡衣',sc:'睡衣',py:'shuìyī',zy:'ㄕㄨㄟˋㄧ',es:'pijama',en:'pajamas'},
+ {zh:'毛衣',sc:'毛衣',py:'máoyī',zy:'ㄇㄠˊㄧ',es:'suéter',en:'sweater'},
+ {zh:'大衣',sc:'大衣',py:'dàyī',zy:'ㄉㄚˋㄧ',es:'abrigo',en:'overcoat'},
+ {zh:'羽絨衣',sc:'羽绒衣',py:'yǔróngyī',zy:'ㄩˇㄖㄨㄥˊㄧ',es:'chamarra de plumas',en:'down jacket'},
+ {zh:'西裝',sc:'西装',py:'xīzhuāng',zy:'ㄒㄧㄓㄨㄤ',es:'traje',en:'suit'},
+ {zh:'制服',sc:'制服',py:'zhìfú',zy:'ㄓˋㄈㄨˊ',es:'uniforme',en:'uniform'},
+ {zh:'旗袍',sc:'旗袍',py:'qípáo',zy:'ㄑㄧˊㄆㄠˊ',es:'qipao',en:'qipao'},
+ {zh:'泳衣',sc:'泳衣',py:'yǒngyī',zy:'ㄩㄥˇㄧ',es:'traje de baño',en:'swimsuit'},
+ {zh:'運動服',sc:'运动服',py:'yùndòngfú',zy:'ㄩㄣˋㄉㄨㄥˋㄈㄨˊ',es:'ropa deportiva',en:'sportswear'},
+ {zh:'背心',sc:'背心',py:'bèixīn',zy:'ㄅㄟˋㄒㄧㄣ',es:'chaleco',en:'vest'},
+ {zh:'皮鞋',sc:'皮鞋',py:'píxié',zy:'ㄆㄧˊㄒㄧㄝˊ',es:'zapatos de cuero',en:'leather shoes'},
+ {zh:'高跟鞋',sc:'高跟鞋',py:'gāogēnxié',zy:'ㄍㄠㄍㄣㄒㄧㄝˊ',es:'tacones',en:'high heels'},
+ {zh:'涼鞋',sc:'凉鞋',py:'liángxié',zy:'ㄌㄧㄤˊㄒㄧㄝˊ',es:'sandalias',en:'sandals'},
+ {zh:'靴子',sc:'靴子',py:'xuēzi',zy:'ㄒㄩㄝ˙ㄗ',es:'botas',en:'boots'},
+ {zh:'鞋帶',sc:'鞋带',py:'xiédài',zy:'ㄒㄧㄝˊㄉㄞˋ',es:'agujeta',en:'shoelace'},
+ {zh:'腰帶',sc:'腰带',py:'yāodài',zy:'ㄧㄠㄉㄞˋ',es:'cinturón',en:'belt'},
+ {zh:'口袋',sc:'口袋',py:'kǒudài',zy:'ㄎㄡˇㄉㄞˋ',es:'bolsillo',en:'pocket'},
+ {zh:'拉鍊',sc:'拉链',py:'lāliàn',zy:'ㄌㄚㄌㄧㄢˋ',es:'cierre',en:'zipper'},
+ {zh:'鈕扣',sc:'纽扣',py:'niǔkòu',zy:'ㄋㄧㄡˇㄎㄡˋ',es:'botón',en:'button'},
+ {zh:'領子',sc:'领子',py:'lǐngzi',zy:'ㄌㄧㄥˇ˙ㄗ',es:'cuello de camisa',en:'collar'},
+ {zh:'袖子',sc:'袖子',py:'xiùzi',zy:'ㄒㄧㄡˋ˙ㄗ',es:'manga',en:'sleeve'},
+ {zh:'墨鏡',sc:'墨镜',py:'mòjìng',zy:'ㄇㄛˋㄐㄧㄥˋ',es:'lentes de sol',en:'sunglasses'},
+ {zh:'耳環',sc:'耳环',py:'ěrhuán',zy:'ㄜˇㄏㄨㄢˊ',es:'aretes',en:'earrings'},
+ {zh:'戒指',sc:'戒指',py:'jièzhi',zy:'ㄐㄧㄝˋ˙ㄓ',es:'anillo',en:'ring'},
+ {zh:'手環',sc:'手环',py:'shǒuhuán',zy:'ㄕㄡˇㄏㄨㄢˊ',es:'pulsera',en:'bracelet'},
+ {zh:'手帕',sc:'手帕',py:'shǒupà',zy:'ㄕㄡˇㄆㄚˋ',es:'pañuelo',en:'handkerchief'},
+ {zh:'背包',sc:'背包',py:'bèibāo',zy:'ㄅㄟˋㄅㄠ',es:'mochila',en:'backpack'},
+ {zh:'錢包',sc:'钱包',py:'qiánbāo',zy:'ㄑㄧㄢˊㄅㄠ',es:'cartera',en:'wallet'},
+ {zh:'雨傘',sc:'雨伞',py:'yǔsǎn',zy:'ㄩˇㄙㄢˇ',es:'paraguas',en:'umbrella'},
+ {zh:'圍裙',sc:'围裙',py:'wéiqún',zy:'ㄨㄟˊㄑㄩㄣˊ',es:'delantal',en:'apron'},
+ {zh:'連帽衣',sc:'连帽衣',py:'liánmàoyī',zy:'ㄌㄧㄢˊㄇㄠˋㄧ',es:'sudadera con gorro',en:'hoodie'},
+ {zh:'棒球帽',sc:'棒球帽',py:'bàngqiúmào',zy:'ㄅㄤˋㄑㄧㄡˊㄇㄠˋ',es:'gorra',en:'baseball cap'},
+ {zh:'長裙',sc:'长裙',py:'chángqún',zy:'ㄔㄤˊㄑㄩㄣˊ',es:'falda larga',en:'long skirt'},
+ {zh:'短裙',sc:'短裙',py:'duǎnqún',zy:'ㄉㄨㄢˇㄑㄩㄣˊ',es:'falda corta',en:'short skirt'},
+ {zh:'絲巾',sc:'丝巾',py:'sījīn',zy:'ㄙㄐㄧㄣ',es:'pañuelo de seda',en:'silk scarf'},
+ {zh:'髮圈',sc:'发圈',py:'fàquān',zy:'ㄈㄚˋㄑㄩㄢ',es:'liga para el cabello',en:'hair tie'},
+ {zh:'髮夾',sc:'发夹',py:'fàjiā',zy:'ㄈㄚˋㄐㄧㄚ',es:'pasador',en:'hair clip'},
+ {zh:'浴袍',sc:'浴袍',py:'yùpáo',zy:'ㄩˋㄆㄠˊ',es:'bata de baño',en:'bathrobe'},
+ {zh:'風衣',sc:'风衣',py:'fēngyī',zy:'ㄈㄥㄧ',es:'gabardina',en:'trench coat'},
+ {zh:'西裝外套',sc:'西装外套',py:'xīzhuāngwàitào',zy:'ㄒㄧㄓㄨㄤㄨㄞˋㄊㄠˋ',es:'saco',en:'blazer'},
+ {zh:'老師',sc:'老师',py:'lǎoshī',zy:'ㄌㄠˇㄕ',es:'profesor',en:'teacher'},
+ {zh:'醫生',sc:'医生',py:'yīshēng',zy:'ㄧㄕㄥ',es:'médico',en:'doctor'},
+ {zh:'護理師',sc:'护理师',py:'hùlǐshī',zy:'ㄏㄨˋㄌㄧˇㄕ',es:'enfermero',en:'nurse'},
+ {zh:'警察',sc:'警察',py:'jǐngchá',zy:'ㄐㄧㄥˇㄔㄚˊ',es:'policía',en:'police officer'},
+ {zh:'廚師',sc:'厨师',py:'chúshī',zy:'ㄔㄨˊㄕ',es:'cocinero',en:'chef'},
+ {zh:'司機',sc:'司机',py:'sījī',zy:'ㄙㄐㄧ',es:'chofer',en:'driver'},
+ {zh:'工程師',sc:'工程师',py:'gōngchéngshī',zy:'ㄍㄨㄥㄔㄥˊㄕ',es:'ingeniero',en:'engineer'},
+ {zh:'律師',sc:'律师',py:'lǜshī',zy:'ㄌㄩˋㄕ',es:'abogado',en:'lawyer'},
+ {zh:'農夫',sc:'农夫',py:'nóngfū',zy:'ㄋㄨㄥˊㄈㄨ',es:'agricultor',en:'farmer'},
+ {zh:'老闆',sc:'老板',py:'lǎobǎn',zy:'ㄌㄠˇㄅㄢˇ',es:'jefe',en:'boss'},
+ {zh:'作家',sc:'作家',py:'zuòjiā',zy:'ㄗㄨㄛˋㄐㄧㄚ',es:'escritor',en:'writer'},
+ {zh:'畫家',sc:'画家',py:'huàjiā',zy:'ㄏㄨㄚˋㄐㄧㄚ',es:'pintor',en:'painter'},
+ {zh:'歌手',sc:'歌手',py:'gēshǒu',zy:'ㄍㄜㄕㄡˇ',es:'cantante',en:'singer'},
+ {zh:'演員',sc:'演员',py:'yǎnyuán',zy:'ㄧㄢˇㄩㄢˊ',es:'actor',en:'actor'},
+ {zh:'記者',sc:'记者',py:'jìzhě',zy:'ㄐㄧˋㄓㄜˇ',es:'periodista',en:'reporter'},
+ {zh:'店員',sc:'店员',py:'diànyuán',zy:'ㄉㄧㄢˋㄩㄢˊ',es:'dependiente',en:'shop clerk'},
+ {zh:'消防員',sc:'消防员',py:'xiāofángyuán',zy:'ㄒㄧㄠㄈㄤˊㄩㄢˊ',es:'bombero',en:'firefighter'},
+ {zh:'理髮師',sc:'理发师',py:'lǐfàshī',zy:'ㄌㄧˇㄈㄚˋㄕ',es:'peluquero',en:'hairdresser'},
+ {zh:'飛行員',sc:'飞行员',py:'fēixíngyuán',zy:'ㄈㄟㄒㄧㄥˊㄩㄢˊ',es:'piloto',en:'pilot'},
+ {zh:'會計',sc:'会计',py:'kuàijì',zy:'ㄎㄨㄞˋㄐㄧˋ',es:'contador',en:'accountant'},
+ {zh:'牙醫',sc:'牙医',py:'yáyī',zy:'ㄧㄚˊㄧ',es:'dentista',en:'dentist'},
+ {zh:'藥師',sc:'药师',py:'yàoshī',zy:'ㄧㄠˋㄕ',es:'farmacéutico',en:'pharmacist'},
+ {zh:'獸醫',sc:'兽医',py:'shòuyī',zy:'ㄕㄡˋㄧ',es:'veterinario',en:'veterinarian'},
+ {zh:'科學家',sc:'科学家',py:'kēxuéjiā',zy:'ㄎㄜㄒㄩㄝˊㄐㄧㄚ',es:'científico',en:'scientist'},
+ {zh:'軍人',sc:'军人',py:'jūnrén',zy:'ㄐㄩㄣㄖㄣˊ',es:'militar',en:'soldier'},
+ {zh:'郵差',sc:'邮差',py:'yóuchāi',zy:'ㄧㄡˊㄔㄞ',es:'cartero',en:'mail carrier'},
+ {zh:'外送員',sc:'外送员',py:'wàisòngyuán',zy:'ㄨㄞˋㄙㄨㄥˋㄩㄢˊ',es:'repartidor',en:'delivery rider'},
+ {zh:'清潔工',sc:'清洁工',py:'qīngjiégōng',zy:'ㄑㄧㄥㄐㄧㄝˊㄍㄨㄥ',es:'personal de limpieza',en:'cleaner'},
+ {zh:'保全',sc:'保全',py:'bǎoquán',zy:'ㄅㄠˇㄑㄩㄢˊ',es:'guardia de seguridad',en:'security guard'},
+ {zh:'水電工',sc:'水电工',py:'shuǐdiàngōng',zy:'ㄕㄨㄟˇㄉㄧㄤˋㄨㄥ',es:'plomero y electricista',en:'plumber and electrician'},
+ {zh:'工人',sc:'工人',py:'gōngrén',zy:'ㄍㄨㄥㄖㄣˊ',es:'obrero',en:'worker'},
+ {zh:'建築師',sc:'建筑师',py:'jiànzhúshī',zy:'ㄐㄧㄢˋㄓㄨˊㄕ',es:'arquitecto',en:'architect'},
+ {zh:'設計師',sc:'设计师',py:'shèjìshī',zy:'ㄕㄜˋㄐㄧˋㄕ',es:'diseñador',en:'designer'},
+ {zh:'攝影師',sc:'摄影师',py:'shèyǐngshī',zy:'ㄕㄜˋㄧㄥˇㄕ',es:'fotógrafo',en:'photographer'},
+ {zh:'導遊',sc:'导游',py:'dǎoyóu',zy:'ㄉㄠˇㄧㄡˊ',es:'guía turístico',en:'tour guide'},
+ {zh:'空服員',sc:'空服员',py:'kōngfúyuán',zy:'ㄎㄨㄥㄈㄨˊㄩㄢˊ',es:'auxiliar de vuelo',en:'flight attendant'},
+ {zh:'服務生',sc:'服务生',py:'fúwùshēng',zy:'ㄈㄨˊㄨˋㄕㄥ',es:'mesero',en:'waiter'},
+ {zh:'收銀員',sc:'收银员',py:'shōuyínyuán',zy:'ㄕㄡㄧㄣˊㄩㄢˊ',es:'cajero',en:'cashier'},
+ {zh:'銀行員',sc:'银行员',py:'yínhángyuán',zy:'ㄧㄣˊㄏㄤˊㄩㄢˊ',es:'empleado de banco',en:'bank clerk'},
+ {zh:'業務員',sc:'业务员',py:'yèwùyuán',zy:'ㄧㄝˋㄨˋㄩㄢˊ',es:'vendedor',en:'salesperson'},
+ {zh:'秘書',sc:'秘书',py:'mìshū',zy:'ㄇㄧˋㄕㄨ',es:'secretaria',en:'secretary'},
+ {zh:'經理',sc:'经理',py:'jīnglǐ',zy:'ㄐㄧㄥㄌㄧˇ',es:'gerente',en:'manager'},
+ {zh:'運動員',sc:'运动员',py:'yùndòngyuán',zy:'ㄩㄣˋㄉㄨㄥˋㄩㄢˊ',es:'deportista',en:'athlete'},
+ {zh:'教練',sc:'教练',py:'jiàoliàn',zy:'ㄐㄧㄠˋㄌㄧㄢˋ',es:'entrenador',en:'coach'},
+ {zh:'音樂家',sc:'音乐家',py:'yīnyuèjiā',zy:'ㄧㄣㄩㄝˋㄐㄧㄚ',es:'músico',en:'musician'},
+ {zh:'導演',sc:'导演',py:'dǎoyǎn',zy:'ㄉㄠˇㄧㄢˇ',es:'director de cine',en:'film director'},
+ {zh:'翻譯',sc:'翻译',py:'fānyì',zy:'ㄈㄢㄧˋ',es:'traductor',en:'translator'},
+ {zh:'麵包師傅',sc:'面包师傅',py:'miànbāoshīfu',zy:'ㄇㄧㄢˋㄅㄠㄕ˙ㄈㄨ',es:'panadero',en:'baker'},
+ {zh:'漁夫',sc:'渔夫',py:'yúfū',zy:'ㄩˊㄈㄨ',es:'pescador',en:'fisherman'},
+ {zh:'法官',sc:'法官',py:'fǎguān',zy:'ㄈㄚˇㄍㄨㄢ',es:'juez',en:'judge'},
+ {zh:'市長',sc:'市长',py:'shìzhǎng',zy:'ㄕˋㄓㄤˇ',es:'alcalde',en:'mayor'},
+ {zh:'總統',sc:'总统',py:'zǒngtǒng',zy:'ㄗㄨㄥˇㄊㄨㄥˇ',es:'presidente',en:'president'},
+ {zh:'保母',sc:'保母',py:'bǎomǔ',zy:'ㄅㄠˇㄇㄨˇ',es:'niñera',en:'nanny'},
+ {zh:'看護',sc:'看护',py:'kānhù',zy:'ㄎㄢㄏㄨˋ',es:'cuidador',en:'caregiver'},
+ {zh:'校長',sc:'校长',py:'xiàozhǎng',zy:'ㄒㄧㄠˋㄓㄤˇ',es:'director de escuela',en:'principal'},
+ {zh:'醫師',sc:'医师',py:'yīshī',zy:'ㄧㄕ',es:'doctor',en:'physician'},
+ {zh:'作曲家',sc:'作曲家',py:'zuòqǔjiā',zy:'ㄗㄨㄛˋㄑㄩˇㄐㄧㄚ',es:'compositor',en:'composer'},
+ {zh:'主持人',sc:'主持人',py:'zhǔchírén',zy:'ㄓㄨˇㄔˊㄖㄣˊ',es:'presentador',en:'host'},
+ {zh:'裁縫師',sc:'裁缝师',py:'cáiféngshī',zy:'ㄘㄞˊㄈㄥˊㄕ',es:'sastre',en:'tailor'},
+ {zh:'修車師傅',sc:'修车师傅',py:'xiūchēshīfu',zy:'ㄒㄧㄡㄔㄜㄕ˙ㄈㄨ',es:'mecánico',en:'mechanic'},
+ {zh:'晴天',sc:'晴天',py:'qíngtiān',zy:'ㄑㄧㄥˊㄊㄧㄢ',es:'día soleado',en:'sunny day'},
+ {zh:'陰天',sc:'阴天',py:'yīntiān',zy:'ㄧㄣㄊㄧㄢ',es:'día nublado',en:'cloudy day'},
+ {zh:'下雨',sc:'下雨',py:'xiàyǔ',zy:'ㄒㄧㄚˋㄩˇ',es:'llover',en:'to rain'},
+ {zh:'下雪',sc:'下雪',py:'xiàxuě',zy:'ㄒㄧㄚˋㄒㄩㄝˇ',es:'nevar',en:'to snow'},
+ {zh:'颱風',sc:'台风',py:'táifēng',zy:'ㄊㄞˊㄈㄥ',es:'tifón',en:'typhoon'},
+ {zh:'打雷',sc:'打雷',py:'dǎléi',zy:'ㄉㄚˇㄌㄟˊ',es:'truenos',en:'thunder'},
+ {zh:'閃電',sc:'闪电',py:'shǎndiàn',zy:'ㄕㄢˇㄉㄧㄢˋ',es:'relámpago',en:'lightning'},
+ {zh:'彩虹',sc:'彩虹',py:'cǎihóng',zy:'ㄘㄞˇㄏㄨㄥˊ',es:'arcoíris',en:'rainbow'},
+ {zh:'太陽',sc:'太阳',py:'tàiyáng',zy:'ㄊㄞˋㄧㄤˊ',es:'sol',en:'sun'},
+ {zh:'月亮',sc:'月亮',py:'yuèliàng',zy:'ㄩㄝˋㄌㄧㄤˋ',es:'luna',en:'moon'},
+ {zh:'星星',sc:'星星',py:'xīngxing',zy:'ㄒㄧㄥ˙ㄒㄧㄥ',es:'estrellas',en:'stars'},
+ {zh:'雲',sc:'云',py:'yún',zy:'ㄩㄣˊ',es:'nube',en:'cloud'},
+ {zh:'風',sc:'风',py:'fēng',zy:'ㄈㄥ',es:'viento',en:'wind'},
+ {zh:'霧',sc:'雾',py:'wù',zy:'ㄨˋ',es:'niebla',en:'fog'},
+ {zh:'熱',sc:'热',py:'rè',zy:'ㄖㄜˋ',es:'calor',en:'hot'},
+ {zh:'冷',sc:'冷',py:'lěng',zy:'ㄌㄥˇ',es:'frío',en:'cold'},
+ {zh:'涼快',sc:'凉快',py:'liángkuai',zy:'ㄌㄧㄤˊ˙ㄎㄨㄞ',es:'fresco',en:'cool'},
+ {zh:'溫暖',sc:'温暖',py:'wēnnuǎn',zy:'ㄨㄣㄋㄨㄢˇ',es:'templado',en:'warm'},
+ {zh:'潮濕',sc:'潮湿',py:'cháoshī',zy:'ㄔㄠˊㄕ',es:'húmedo',en:'humid'},
+ {zh:'地震',sc:'地震',py:'dìzhèn',zy:'ㄉㄧˋㄓㄣˋ',es:'terremoto',en:'earthquake'},
+ {zh:'大雨',sc:'大雨',py:'dàyǔ',zy:'ㄉㄚˋㄩˇ',es:'lluvia fuerte',en:'heavy rain'},
+ {zh:'小雨',sc:'小雨',py:'xiǎoyǔ',zy:'ㄒㄧㄠˇㄩˇ',es:'llovizna',en:'light rain'},
+ {zh:'雷雨',sc:'雷雨',py:'léiyǔ',zy:'ㄌㄟˊㄩˇ',es:'tormenta',en:'thunderstorm'},
+ {zh:'大風',sc:'大风',py:'dàfēng',zy:'ㄉㄚˋㄈㄥ',es:'viento fuerte',en:'strong wind'},
+ {zh:'微風',sc:'微风',py:'wēifēng',zy:'ㄨㄟㄈㄥ',es:'brisa',en:'breeze'},
+ {zh:'乾燥',sc:'干燥',py:'gānzào',zy:'ㄍㄢㄗㄠˋ',es:'seco',en:'dry'},
+ {zh:'悶熱',sc:'闷热',py:'mēnrè',zy:'ㄇㄣㄖㄜˋ',es:'bochornoso',en:'muggy'},
+ {zh:'寒冷',sc:'寒冷',py:'hánlěng',zy:'ㄏㄢˊㄌㄥˇ',es:'helado',en:'freezing'},
+ {zh:'冰雹',sc:'冰雹',py:'bīngbáo',zy:'ㄅㄧㄥㄅㄠˊ',es:'granizo',en:'hail'},
+ {zh:'霜',sc:'霜',py:'shuāng',zy:'ㄕㄨㄤ',es:'escarcha',en:'frost'},
+ {zh:'冰',sc:'冰',py:'bīng',zy:'ㄅㄧㄥ',es:'hielo',en:'ice'},
+ {zh:'雪',sc:'雪',py:'xuě',zy:'ㄒㄩㄝˇ',es:'nieve',en:'snow'},
+ {zh:'雨',sc:'雨',py:'yǔ',zy:'ㄩˇ',es:'lluvia',en:'rain'},
+ {zh:'天空',sc:'天空',py:'tiānkōng',zy:'ㄊㄧㄢㄎㄨㄥ',es:'cielo',en:'sky'},
+ {zh:'烏雲',sc:'乌云',py:'wūyún',zy:'ㄨㄩㄣˊ',es:'nubes oscuras',en:'dark clouds'},
+ {zh:'陽光',sc:'阳光',py:'yángguāng',zy:'ㄧㄤˊㄍㄨㄤ',es:'luz del sol',en:'sunshine'},
+ {zh:'氣溫',sc:'气温',py:'qìwēn',zy:'ㄑㄧˋㄨㄣ',es:'temperatura',en:'air temperature'},
+ {zh:'天氣預報',sc:'天气预报',py:'tiānqìyùbào',zy:'ㄊㄧㄢㄑㄧˋㄩˋㄅㄠˋ',es:'pronóstico del clima',en:'weather forecast'},
+ {zh:'季節',sc:'季节',py:'jìjié',zy:'ㄐㄧˋㄐㄧㄝˊ',es:'estación del año',en:'season'},
+ {zh:'春天',sc:'春天',py:'chūntiān',zy:'ㄔㄨㄣㄊㄧㄢ',es:'primavera',en:'spring'},
+ {zh:'夏天',sc:'夏天',py:'xiàtiān',zy:'ㄒㄧㄚˋㄊㄧㄢ',es:'verano',en:'summer'},
+ {zh:'秋天',sc:'秋天',py:'qiūtiān',zy:'ㄑㄧㄡㄊㄧㄢ',es:'otoño',en:'autumn'},
+ {zh:'冬天',sc:'冬天',py:'dōngtiān',zy:'ㄉㄨㄥㄊㄧㄢ',es:'invierno',en:'winter'},
+ {zh:'梅雨',sc:'梅雨',py:'méiyǔ',zy:'ㄇㄟˊㄩˇ',es:'lluvias de ciruela',en:'plum rain'},
+ {zh:'寒流',sc:'寒流',py:'hánliú',zy:'ㄏㄢˊㄌㄧㄡˊ',es:'ola de frío',en:'cold wave'},
+ {zh:'洪水',sc:'洪水',py:'hóngshuǐ',zy:'ㄏㄨㄥˊㄕㄨㄟˇ',es:'inundación',en:'flood'},
+ {zh:'日出',sc:'日出',py:'rìchū',zy:'ㄖˋㄔㄨ',es:'amanecer',en:'sunrise'},
+ {zh:'日落',sc:'日落',py:'rìluò',zy:'ㄖˋㄌㄨㄛˋ',es:'atardecer',en:'sunset'},
+ {zh:'暴風雨',sc:'暴风雨',py:'bàofēngyǔ',zy:'ㄅㄠˋㄈㄥㄩˇ',es:'tormenta fuerte',en:'storm'},
+ {zh:'晴朗',sc:'晴朗',py:'qínglǎng',zy:'ㄑㄧㄥˊㄌㄤˇ',es:'despejado',en:'clear'},
+ {zh:'多雲',sc:'多云',py:'duōyún',zy:'ㄉㄨㄛㄩㄣˊ',es:'nublado parcial',en:'partly cloudy'},
+ {zh:'陣雨',sc:'阵雨',py:'zhènyǔ',zy:'ㄓㄣˋㄩˇ',es:'chubasco',en:'shower'},
+ {zh:'毛毛雨',sc:'毛毛雨',py:'máomáoyǔ',zy:'ㄇㄠˊㄇㄠˊㄩˇ',es:'garúa',en:'drizzle'},
+ {zh:'暖和',sc:'暖和',py:'nuǎnhuo',zy:'ㄋㄨㄢˇ˙ㄏㄨㄛ',es:'calientito',en:'warm'},
+ {zh:'炎熱',sc:'炎热',py:'yánrè',zy:'ㄧㄢˊㄖㄜˋ',es:'calor intenso',en:'scorching hot'},
+ {zh:'桌子',sc:'桌子',py:'zhuōzi',zy:'ㄓㄨㄛ˙ㄗ',es:'mesa',en:'table'},
+ {zh:'椅子',sc:'椅子',py:'yǐzi',zy:'ㄧˇ˙ㄗ',es:'silla',en:'chair'},
+ {zh:'沙發',sc:'沙发',py:'shāfā',zy:'ㄕㄚㄈㄚ',es:'sofá',en:'sofa'},
+ {zh:'床',sc:'床',py:'chuáng',zy:'ㄔㄨㄤˊ',es:'cama',en:'bed'},
+ {zh:'冰箱',sc:'冰箱',py:'bīngxiāng',zy:'ㄅㄧㄥㄒㄧㄤ',es:'refrigerador',en:'fridge'},
+ {zh:'電視',sc:'电视',py:'diànshì',zy:'ㄉㄧㄢˋㄕˋ',es:'televisión',en:'TV'},
+ {zh:'冷氣',sc:'冷气',py:'lěngqì',zy:'ㄌㄥˇㄑㄧˋ',es:'aire acondicionado',en:'air conditioner'},
+ {zh:'電風扇',sc:'电风扇',py:'diànfēngshàn',zy:'ㄉㄧㄢˋㄈㄥㄕㄢˋ',es:'ventilador',en:'fan'},
+ {zh:'窗戶',sc:'窗户',py:'chuānghù',zy:'ㄔㄨㄤㄏㄨˋ',es:'ventana',en:'window'},
+ {zh:'門',sc:'门',py:'mén',zy:'ㄇㄣˊ',es:'puerta',en:'door'},
+ {zh:'燈',sc:'灯',py:'dēng',zy:'ㄉㄥ',es:'lámpara',en:'lamp'},
+ {zh:'書櫃',sc:'书柜',py:'shūguì',zy:'ㄕㄨㄍㄨㄟˋ',es:'librero',en:'bookshelf'},
+ {zh:'洗衣機',sc:'洗衣机',py:'xǐyījī',zy:'ㄒㄧˇㄧㄐㄧ',es:'lavadora',en:'washing machine'},
+ {zh:'鏡子',sc:'镜子',py:'jìngzi',zy:'ㄐㄧㄥˋ˙ㄗ',es:'espejo',en:'mirror'},
+ {zh:'枕頭',sc:'枕头',py:'zhěntou',zy:'ㄓㄣˇ˙ㄊㄡ',es:'almohada',en:'pillow'},
+ {zh:'棉被',sc:'棉被',py:'miánbèi',zy:'ㄇㄧㄢˊㄅㄟˋ',es:'cobija',en:'blanket'},
+ {zh:'浴室',sc:'浴室',py:'yùshì',zy:'ㄩˋㄕˋ',es:'baño',en:'bathroom'},
+ {zh:'廚房',sc:'厨房',py:'chúfáng',zy:'ㄔㄨˊㄈㄤˊ',es:'cocina',en:'kitchen'},
+ {zh:'陽台',sc:'阳台',py:'yángtái',zy:'ㄧㄤˊㄊㄞˊ',es:'balcón',en:'balcony'},
+ {zh:'樓梯',sc:'楼梯',py:'lóutī',zy:'ㄌㄡˊㄊㄧ',es:'escaleras',en:'stairs'},
+ {zh:'衣櫃',sc:'衣柜',py:'yīguì',zy:'ㄧㄍㄨㄟˋ',es:'armario',en:'wardrobe'},
+ {zh:'鞋櫃',sc:'鞋柜',py:'xiéguì',zy:'ㄒㄧㄝˊㄍㄨㄟˋ',es:'zapatero',en:'shoe cabinet'},
+ {zh:'書桌',sc:'书桌',py:'shūzhuō',zy:'ㄕㄨㄓㄨㄛ',es:'escritorio',en:'desk'},
+ {zh:'茶几',sc:'茶几',py:'chájī',zy:'ㄔㄚˊㄐㄧ',es:'mesa de centro',en:'coffee table'},
+ {zh:'電腦',sc:'电脑',py:'diànnǎo',zy:'ㄉㄧㄢˋㄋㄠˇ',es:'computadora',en:'computer'},
+ {zh:'電話',sc:'电话',py:'diànhuà',zy:'ㄉㄧㄢˋㄏㄨㄚˋ',es:'teléfono',en:'telephone'},
+ {zh:'手機',sc:'手机',py:'shǒujī',zy:'ㄕㄡˇㄐㄧ',es:'celular',en:'phone'},
+ {zh:'時鐘',sc:'时钟',py:'shízhōng',zy:'ㄕˊㄓㄨㄥ',es:'reloj de pared',en:'clock'},
+ {zh:'掃把',sc:'扫把',py:'sàobǎ',zy:'ㄙㄠˋㄅㄚˇ',es:'escoba',en:'broom'},
+ {zh:'拖把',sc:'拖把',py:'tuōbǎ',zy:'ㄊㄨㄛㄅㄚˇ',es:'trapeador',en:'mop'},
+ {zh:'垃圾桶',sc:'垃圾桶',py:'lèsètǒng',zy:'ㄌㄜˋㄙㄜˋㄊㄨㄥˇ',es:'basurero',en:'trash can'},
+ {zh:'水龍頭',sc:'水龙头',py:'shuǐlóngtóu',zy:'ㄕㄨㄟˇㄌㄨㄥˊㄊㄡˊ',es:'grifo',en:'faucet'},
+ {zh:'馬桶',sc:'马桶',py:'mǎtǒng',zy:'ㄇㄚˇㄊㄨㄥˇ',es:'inodoro',en:'toilet'},
+ {zh:'浴缸',sc:'浴缸',py:'yùgāng',zy:'ㄩˋㄍㄤ',es:'bañera',en:'bathtub'},
+ {zh:'蓮蓬頭',sc:'莲蓬头',py:'liánpengtóu',zy:'ㄌㄧㄢˊ˙ㄆㄥㄊㄡˊ',es:'regadera',en:'shower head'},
+ {zh:'牙刷',sc:'牙刷',py:'yáshuā',zy:'ㄧㄚˊㄕㄨㄚ',es:'cepillo de dientes',en:'toothbrush'},
+ {zh:'牙膏',sc:'牙膏',py:'yágāo',zy:'ㄧㄚˊㄍㄠ',es:'pasta de dientes',en:'toothpaste'},
+ {zh:'毛巾',sc:'毛巾',py:'máojīn',zy:'ㄇㄠˊㄐㄧㄣ',es:'toalla',en:'towel'},
+ {zh:'肥皂',sc:'肥皂',py:'féizào',zy:'ㄈㄟˊㄗㄠˋ',es:'jabón',en:'soap'},
+ {zh:'洗髮精',sc:'洗发精',py:'xǐfàjīng',zy:'ㄒㄧˇㄈㄚˋㄐㄧㄥ',es:'champú',en:'shampoo'},
+ {zh:'衛生紙',sc:'卫生纸',py:'wèishēngzhǐ',zy:'ㄨㄟˋㄕㄥㄓˇ',es:'papel higiénico',en:'toilet paper'},
+ {zh:'梳子',sc:'梳子',py:'shūzi',zy:'ㄕㄨ˙ㄗ',es:'peine',en:'comb'},
+ {zh:'衣架',sc:'衣架',py:'yījià',zy:'ㄧㄐㄧㄚˋ',es:'gancho',en:'hanger'},
+ {zh:'地毯',sc:'地毯',py:'dìtǎn',zy:'ㄉㄧˋㄊㄢˇ',es:'alfombra',en:'rug'},
+ {zh:'窗簾',sc:'窗帘',py:'chuānglián',zy:'ㄔㄨㄤㄌㄧㄢˊ',es:'cortina',en:'curtain'},
+ {zh:'地板',sc:'地板',py:'dìbǎn',zy:'ㄉㄧˋㄅㄢˇ',es:'piso',en:'floor'},
+ {zh:'天花板',sc:'天花板',py:'tiānhuābǎn',zy:'ㄊㄧㄢㄏㄨㄚㄅㄢˇ',es:'techo interior',en:'ceiling'},
+ {zh:'牆壁',sc:'墙壁',py:'qiángbì',zy:'ㄑㄧㄤˊㄅㄧˋ',es:'pared',en:'wall'},
+ {zh:'屋頂',sc:'屋顶',py:'wūdǐng',zy:'ㄨㄉㄧㄥˇ',es:'techo',en:'roof'},
+ {zh:'客廳',sc:'客厅',py:'kètīng',zy:'ㄎㄜˋㄊㄧㄥ',es:'sala',en:'living room'},
+ {zh:'臥室',sc:'卧室',py:'wòshì',zy:'ㄨㄛˋㄕˋ',es:'dormitorio',en:'bedroom'},
+ {zh:'飯廳',sc:'饭厅',py:'fàntīng',zy:'ㄈㄢˋㄊㄧㄥ',es:'comedor',en:'dining room'},
+ {zh:'院子',sc:'院子',py:'yuànzi',zy:'ㄩㄢˋ˙ㄗ',es:'patio',en:'yard'},
+ {zh:'車庫',sc:'车库',py:'chēkù',zy:'ㄔㄜㄎㄨˋ',es:'garaje',en:'garage'},
+ {zh:'鑰匙',sc:'钥匙',py:'yuèshi',zy:'ㄩㄝˋ˙ㄕ',es:'llave',en:'key'},
+ {zh:'插座',sc:'插座',py:'chāzuò',zy:'ㄔㄚㄗㄨㄛˋ',es:'enchufe',en:'socket'},
+ {zh:'開關',sc:'开关',py:'kāiguān',zy:'ㄎㄞㄍㄨㄢ',es:'interruptor',en:'switch'},
+ {zh:'遙控器',sc:'遥控器',py:'yáokòngqì',zy:'ㄧㄠˊㄎㄨㄥˋㄑㄧˋ',es:'control remoto',en:'remote control'},
+ {zh:'電鍋',sc:'电锅',py:'diànguō',zy:'ㄉㄧㄤˋㄨㄛ',es:'arrocera',en:'rice cooker'},
+ {zh:'微波爐',sc:'微波炉',py:'wēibōlú',zy:'ㄨㄟㄅㄛㄌㄨˊ',es:'microondas',en:'microwave'},
+ {zh:'烤箱',sc:'烤箱',py:'kǎoxiāng',zy:'ㄎㄠˇㄒㄧㄤ',es:'horno',en:'oven'},
+ {zh:'瓦斯爐',sc:'瓦斯炉',py:'wǎsīlú',zy:'ㄨㄚˇㄙㄌㄨˊ',es:'estufa',en:'gas stove'},
+ {zh:'鍋子',sc:'锅子',py:'guōzi',zy:'ㄍㄨㄛ˙ㄗ',es:'olla',en:'pot'},
+ {zh:'盤子',sc:'盘子',py:'pánzi',zy:'ㄆㄢˊ˙ㄗ',es:'plato',en:'plate'},
+ {zh:'碗',sc:'碗',py:'wǎn',zy:'ㄨㄢˇ',es:'tazón',en:'bowl'},
+ {zh:'筷子',sc:'筷子',py:'kuàizi',zy:'ㄎㄨㄞˋ˙ㄗ',es:'palillos',en:'chopsticks'},
+ {zh:'湯匙',sc:'汤匙',py:'tāngchí',zy:'ㄊㄤㄔˊ',es:'cuchara',en:'spoon'},
+ {zh:'叉子',sc:'叉子',py:'chāzi',zy:'ㄔㄚ˙ㄗ',es:'tenedor',en:'fork'},
+ {zh:'刀子',sc:'刀子',py:'dāozi',zy:'ㄉㄠ˙ㄗ',es:'cuchillo',en:'knife'},
+ {zh:'杯子',sc:'杯子',py:'bēizi',zy:'ㄅㄟ˙ㄗ',es:'taza',en:'cup'},
+ {zh:'水壺',sc:'水壶',py:'shuǐhú',zy:'ㄕㄨㄟˇㄏㄨˊ',es:'jarra',en:'kettle'},
+ {zh:'抽屜',sc:'抽屉',py:'chōutì',zy:'ㄔㄡㄊㄧˋ',es:'cajón',en:'drawer'},
+ {zh:'檯燈',sc:'台灯',py:'táidēng',zy:'ㄊㄞˊㄉㄥ',es:'lámpara de escritorio',en:'desk lamp'}
 ];
+/* BANK:END */
 const POWER={zh:'力',sc:'力',py:'lì',zy:'ㄌㄧˋ',es:'',en:''};
 
 /* ---------- 地圖 15 x 19（# 牆；第 9 列兩側是穿越隧道；每場、每升一級都重新隨機產生） ---------- */
@@ -246,7 +819,7 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 buildMaze();
 
-const cfg=Object.assign({mode:'text',level:1},lsGet('cc_cfg',{}));
+const cfg=Object.assign({mode:'text'},lsGet('cc_cfg',{}));
 delete cfg.pinyin;
 
 /* ---------- 共用設定（和其他遊戲同一份 hanziGames.settings） ---------- */
@@ -283,12 +856,6 @@ const UI={
  modeTextEs:['Español → 中文','Español → 中文','西文 → 中文','西文 → 中文'],
  modeTextEn:['English → 中文','English → 中文','英文 → 中文','英文 → 中文'],
  modeListen:['Escuchar 🔊','Listen 🔊','聽 🔊','听 🔊'],
- diff:['Dificultad','Difficulty','難度','难度'],
- lv1:['Inicial','Beginner','初級','初级'],
- lv2:['Medio','Intermediate','中級','中级'],
- lv3:['Avanzado','Advanced','高級','高级'],
- ch1:['1 carácter','1 character','1 個字','1 个字'],
- ch2:['2 caracteres','2 characters','2 個字','2 个字'],
  settings:['Ajustes','Settings','設定','设置'],
  script:['Escritura','Characters','字體','字体'],
  lang:['Idioma','Language','語言','语言'],
@@ -441,7 +1008,7 @@ function addMonster(i,wait){
 }
 function startGame(){
   buildMaze();
-  try{HGPlays.start('L'+cfg.level,getName());}catch(e){}
+  try{HGPlays.start('all',getName());}catch(e){}
   G={score:0,lives:3,stage:1,correct:0,combo:0,items:[],monsters:[],pops:[],mistakes:[],
      q:null,lastZh:'',invincible:0,fright:0,freeze:1.4,banner:T('ready'),bannerT:1.4,time:0,flash:0,chomp:0};
   P=makeEnt(PLAYER_START[0],PLAYER_START[1],5.2);P.want=null;P.face=Math.PI;
@@ -458,19 +1025,29 @@ function freeCell(minDist){
   const c=SPAWN.filter(([x,y])=>!occ.has(x+','+y)&&Math.abs(x-pp.x)+Math.abs(y-pp.y)>=minDist);
   return c.length?c[rnd(c.length)]:SPAWN[rnd(SPAWN.length)];
 }
+/* 干擾項：整個字庫裡挑；不能跟正解有相同的字、不能是同義（西文或英文相同）；字數盡量跟正解一樣 */
+const nch=z=>[...z].length;
 function pickDistractor(q){
-  const pool=BANK.filter(w=>w.l===cfg.level&&w.zh!==q.zh&&![...w.zh].some(ch=>q.zh.includes(ch)));
   const used=new Set(G.items.map(i=>i.zh));
-  const c=pool.filter(w=>!used.has(w.zh));
-  return (c.length?c:pool)[rnd((c.length?c:pool).length)];
+  const ok=w=>w.zh!==q.zh&&!used.has(w.zh)&&![...w.zh].some(ch=>q.zh.includes(ch))&&w.es.toLowerCase()!==q.es.toLowerCase()&&w.en.toLowerCase()!==q.en.toLowerCase();
+  const n=nch(q.zh);
+  for(const d of [0,1,2,3]){
+    const pool=BANK.filter(w=>Math.abs(nch(w.zh)-n)<=d&&ok(w));
+    if(pool.length>=3||d===3&&pool.length)return pool[rnd(pool.length)];
+  }
+  return BANK[rnd(BANK.length)];
 }
 function addItem(w,kind){
   const [x,y]=freeCell(5);
   G.items.push({x,y,w,zh:w.zh,kind,t:kind==='power'?14:0,seed:Math.random()*6});
 }
 function newQuestion(){
-  const pool=BANK.filter(w=>w.l===cfg.level);
-  let w;do{w=pool[rnd(pool.length)];}while(w.zh===G.lastZh&&pool.length>1);
+  if(!G.bag||!G.bag.length){ // 洗牌袋：整個字庫抽完才重洗，一局內不會重複
+    G.bag=BANK.slice();
+    for(let i=G.bag.length-1;i>0;i--){const j=rnd(i+1);[G.bag[i],G.bag[j]]=[G.bag[j],G.bag[i]];}
+    if(G.bag[G.bag.length-1].zh===G.lastZh)G.bag.unshift(G.bag.pop());
+  }
+  const w=G.bag.pop();
   G.lastZh=w.zh;G.q=w;G.q.missed=false;
   G.items=G.items.filter(i=>i.kind==='power');
   addItem(w,'ok');
@@ -582,15 +1159,19 @@ async function submitScore(name,score){
     }
   }
   await L.F.setDoc(ref,{name,score,updatedAt:L.F.serverTimestamp()});
+  topCache=null;
   return 'saved';
 }
+let topCache=null; // 排行榜 60 秒暫存：反覆開關不會重複讀 Firestore
 async function fetchTop(){
+  if(topCache&&Date.now()-topCache.t<60000)return topCache.v;
   const L=await fbInit();if(!L)throw new Error('no firebase');
   const q=L.F.query(L.F.collection(L.db,LB_COL),L.F.orderBy('score','desc'),L.F.limit(10));
   const snap=await L.F.getDocs(q);
   const rows=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
   rows.sort((a,b)=>b.score-a.score);
-  return {rows:rows.slice(0,10),uid:L.uid};
+  const v={rows:rows.slice(0,10),uid:L.uid};topCache={t:Date.now(),v};
+  return v;
 }
 function showBoard(back){
   const o=$('ov');o.classList.add('show');
@@ -678,7 +1259,11 @@ function rr(x,y,w,h,r){
   ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
 }
 function drawItem(it){
-  const s=cell*.92,x=it.x*cell+(cell-s)/2,y=it.y*cell+(cell-s)/2;
+  const txt=disp(it.w),n=[...txt].length;
+  const s=cell*.92;
+  // 3～4 字的詞：框略大於一格（橫向 1.6／1.25 格），字才看得清楚
+  const bw=n===3?cell*1.6:n>=4?cell*1.2:s,bh=n>=4?cell*1.2:s;
+  const x=(it.x+.5)*cell-bw/2,y=(it.y+.5)*cell-bh/2;
   const power=it.kind==='power';
   let alpha=1;
   if(power&&it.t<3)alpha=Math.sin(G.time*14)>0?1:.35;
@@ -687,13 +1272,20 @@ function drawItem(it){
     const k=1+Math.sin(G.time*5+it.seed)*.06;
     ctx.save();ctx.translate((it.x+.5)*cell,(it.y+.5)*cell);ctx.scale(k,k);ctx.translate(-(it.x+.5)*cell,-(it.y+.5)*cell);
   }
-  rr(x,y,s,s,s*.22);
+  rr(x,y,bw,bh,s*.22);
   ctx.fillStyle=power?'#efe3c2':'#ffffff';ctx.fill();
   ctx.strokeStyle=power?'#b08d3c':'#8a8478';ctx.lineWidth=power?2:1.2;ctx.stroke();
-  const txt=disp(it.w),n=[...txt].length;
   ctx.fillStyle='#3b3935';ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.font=`${Math.floor(cell*(n===1?.7:.42))}px ${FONT}`;
-  ctx.fillText(txt,(it.x+.5)*cell,(it.y+.54)*cell);
+  const cx=(it.x+.5)*cell,cy=(it.y+.54)*cell;
+  if(n<=2){
+    ctx.font=`${Math.floor(cell*(n===1?.7:.42))}px ${FONT}`;ctx.fillText(txt,cx,cy);
+  }else if(n===3){ // 3 字：一行，字略為壓窄
+    ctx.font=`${Math.floor(cell*.46)}px ${FONT}`;ctx.fillText(txt,cx,cy,cell*1.5);
+  }else{ // 4 字：兩行各 2 字
+    const a=[...txt];
+    ctx.font=`${Math.floor(cell*.46)}px ${FONT}`;
+    ctx.fillText(a[0]+a[1],cx,cy-cell*.24);ctx.fillText(a[2]+a[3],cx,cy+cell*.22);
+  }
   if(power)ctx.restore();
   ctx.globalAlpha=1;
 }
@@ -953,6 +1545,13 @@ function draw(){
 function segRow(lab,id,opts,cur,small){
   return `<div class="lab">${lab}</div><div class="row${small?' sm':''}">${opts.map(([v,t])=>`<button class="opt ${String(cur)===String(v)?'on':''}" data-set="${id}" data-v="${v}">${t}</button>`).join('')}</div>`;
 }
+let _logo='';
+function fillLogo(n){                                 // 開始頁的小籠包（用遊戲裡同一張圖；圖還在畫的時候等一下再填）
+  const el=$('logo');if(!el)return;
+  try{if(!_logo&&SPR.frontO)_logo=SPR.frontO.n.toDataURL();}catch(e){}
+  if(_logo){el.src=_logo;el.style.visibility='visible';}
+  else if((n||0)<40){el.style.visibility='hidden';setTimeout(()=>fillLogo((n||0)+1),100);}
+}
 function showMenu(){
   state='menu';
   const o=$('ov');o.classList.add('show');
@@ -960,34 +1559,42 @@ function showMenu(){
   const modeRow=zh
     ?`<div class="lab">${T('mode')}</div><div class="row"><button class="opt on" data-set="mode" data-v="listen">${T('modeListen')}</button></div><p style="margin:0">${T('listenOnlyNote')}</p>`
     :segRow(T('mode'),'mode',[['text',T(S.lang==='en'?'modeTextEn':'modeTextEs')],['listen',T('modeListen')]],cfg.mode);
-  const lvRow=`<div class="lab">${T('diff')}</div><div class="row">`+[1,2,3].map(n=>
-    `<button class="opt ${cfg.level===n?'on':''}" data-set="level" data-v="${n}">${T('lv'+n)}<br><small>${T(n===1?'ch1':'ch2')}</small></button>`).join('')+`</div>`;
   o.innerHTML=`<div class="card">
-    <h1>${S.script==='simp'?'吃字小精灵':'吃字小精靈'}</h1><h2>Come Caracteres</h2>
+    <div class="brand"><img class="logo" id="logo" alt=""><div><h1>${S.script==='simp'?'吃字小精灵':'吃字小精靈'}</h1><h2>Come Caracteres</h2></div></div>
     ${modeRow}
-    ${lvRow}
-    ${segRow(T('script'),'script',[['trad','繁體'],['simp','简体']],S.script,1)}
-    ${segRow(T('lang'),'lang',[['es','Español'],['en','English'],['zh',T('langZh')]],S.lang,1)}
-    ${segRow(T('phon'),'phon',[['pinyin','Pinyin'],['zhuyin','注音'],['both',T('phonBoth')],['off',T('phonOff')]],S.phon,1)}
-    ${segRow(T('rate'),'rate',[['slow',T('rateSlow')],['normal',T('rateNormal')],['fast',T('rateFast')]],S.rate,1)}
     <button class="main" id="go">${T('play')}</button>
-    <button class="sub" id="lb">🏆 ${T('board')}</button>
+    <div class="row2"><button class="sub" id="lb">🏆 ${T('board')}</button><button class="sub" id="st">⚙ ${T('settings')}</button></div>
     <p>${T('howto')}</p>
     <p>${T('best')}: <b style="color:var(--ink)">${best}</b></p>
     <div class="copy">${esc(T('copy'))}</div>
   </div>`;
+  fillLogo();
   o.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.set,v=b.dataset.v;
     if(k==='mode'){cfg.mode=v;lsSet('cc_cfg',cfg);}
-    else if(k==='level'){cfg.level=+v;lsSet('cc_cfg',cfg);}
     else{S[k]=v;writeSettings(S);applyLang();}
     showMenu();
   });
   $('lb').onclick=()=>showBoard(showMenu);
+  $('st').onclick=showSettings;
   $('go').onclick=()=>{
     speechSynthesis&&speechSynthesis.getVoices&&speechSynthesis.getVoices();
     startGame();
   };
+}
+function showSettings(){
+  state='menu';
+  const o=$('ov');o.classList.add('show');
+  o.innerHTML=`<div class="card">
+    <h1>⚙ ${T('settings')}</h1>
+    ${segRow(T('script'),'script',[['trad','繁體'],['simp','简体']],S.script)}
+    ${segRow(T('lang'),'lang',[['es','Español'],['en','English'],['zh',T('langZh')]],S.lang)}
+    ${segRow(T('phon'),'phon',[['pinyin','Pinyin'],['zhuyin','注音'],['both',T('phonBoth')],['off',T('phonOff')]],S.phon)}
+    ${segRow(T('rate'),'rate',[['slow',T('rateSlow')],['normal',T('rateNormal')],['fast',T('rateFast')]],S.rate)}
+    <button class="main" id="stBack">${T('back')}</button>
+  </div>`;
+  o.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{S[b.dataset.set]=b.dataset.v;writeSettings(S);applyLang();showSettings();});
+  $('stBack').onclick=showMenu;
 }
 function showOver(){
   const o=$('ov');o.classList.add('show');
