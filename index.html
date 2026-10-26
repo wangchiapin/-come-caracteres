@@ -1448,13 +1448,15 @@ function drawItem(it){
     const k=power?1+Math.sin(G.time*5+it.seed)*.06:1.22+Math.sin(G.time*7)*.12;
     ctx.save();ctx.translate((it.x+.5)*cell,(it.y+.5)*cell);ctx.scale(k,k);ctx.translate(-(it.x+.5)*cell,-(it.y+.5)*cell);
   }
-  rr(x,y,bw,bh,s*.22);
-  ctx.fillStyle=power?'#f1c97a':'#fff3bf';ctx.fill();
-  ctx.strokeStyle=power?'#a8782a':hint?'#6b8e6b':'#b8a45a';ctx.lineWidth=power?2:hint?2.6:1.2;ctx.stroke();
+  if(!power){                                            // 珍珠奶茶不要卡片，直接畫圖案
+    rr(x,y,bw,bh,s*.22);
+    ctx.fillStyle='#fff3bf';ctx.fill();
+    ctx.strokeStyle=hint?'#6b8e6b':'#b8a45a';ctx.lineWidth=hint?2.6:1.2;ctx.stroke();
+  }
   ctx.fillStyle='#3b3935';ctx.textAlign='center';ctx.textBaseline='middle';
   const cx=bcx,cy=(it.y+.54)*cell;
   if(power){                                              // 珍珠奶茶：畫圖案，不寫字
-    if(BOBA_IMG.complete&&BOBA_IMG.naturalWidth){const z=cell*.9;ctx.drawImage(BOBA_IMG,bcx-z/2,(it.y+.5)*cell-z/2,z,z);}
+    if(BOBA_IMG.complete&&BOBA_IMG.naturalWidth){const z=cell*1.15;ctx.drawImage(BOBA_IMG,bcx-z/2,(it.y+.5)*cell-z/2,z,z);}
   }else if(n<=2){
     ctx.font=`${Math.floor(cell*(n===1?.8:.7))}px ${FONT}`;ctx.fillText(txt,cx,cy,bw-6);
   }else if(n===3){ // 3 字：一行，字略為壓窄
