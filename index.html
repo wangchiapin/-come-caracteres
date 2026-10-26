@@ -30,6 +30,8 @@ canvas{display:block;background:var(--paper);border-radius:8px}
 .card{width:100%;max-width:360px;text-align:center;margin:auto;padding-bottom:50px}
 .row2{display:flex;gap:8px;margin-top:12px}
 .row2 .sub{flex:1;margin-top:0;background:#f4edd9;color:var(--ink);border:1px solid #c4b78f;border-radius:10px;padding:8px 4px;transition:background .15s}.row2 .sub:active{background:#e9dfc6}
+@keyframes nmshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+input.nm.bad{border-color:var(--bad)!important;animation:nmshake .28s}
 input.nm.cp{font-size:16px;padding:6px 8px;background:#fdfbf5;border-color:#ddd6c4;border-radius:8px;margin:4px 0 0}
 .row.sm button{padding:7px 4px;font-size:13px}
 .lbbox{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-height:60px;text-align:left}
@@ -1273,7 +1275,8 @@ function fbInit(){
   return fbP;
 }
 const NAME_KEY='cc_name';
-const getName=()=>String(lsGet(NAME_KEY,'')||'').trim().slice(0,14);
+let memName='';                                   // 瀏覽器不讓存資料時（例如無痕模式），這一局還是記得暱稱
+const getName=()=>String(lsGet(NAME_KEY,'')||memName||'').trim().slice(0,14);
 async function submitScore(name,score){
   const L=await fbInit();if(!L)throw new Error('no firebase');
   const ref=L.F.doc(L.db,LB_COL,L.uid);
@@ -1713,7 +1716,7 @@ function showMenu(){
   o.innerHTML=`<div class="card">
     <div class="brand"><div class="lw"><img class="logo" id="logo" alt=""><i class="sm s1"></i><i class="sm s2"></i></div><div><h1>${S.script==='simp'?'吃字小笼包':'吃字小籠包'}</h1><h2>Come Caracteres</h2></div></div>
     ${modeRow}
-    <div class="lab">${THi('namePh')}</div><input id="nmMenu" maxlength="14" autocomplete="off" placeholder="${esc(T('nameIn'))}" value="${esc(getName())}" class="nm cp">
+    <div class="lab">${THi('namePh')}</div><input id="nmMenu" maxlength="14" autocomplete="off" placeholder="${esc(T('nameIn'))}" value="${esc(getName())}" class="nm cp"><div id="nmHint" class="lbs" style="min-height:0;margin:4px 0 0;color:var(--bad)"></div>
     <button class="main" id="go">${TH('play')}</button>
     <div class="row2"><button class="sub" id="lb">🏆 ${TH('board')}</button><button class="sub" id="st">⚙ ${TH('settings')}</button><button class="sub" id="hp">❓ ${TH('help')}</button></div>
     <p>${T('best')}: <b style="color:var(--ink)">${best}</b></p>
@@ -1731,6 +1734,13 @@ function showMenu(){
   $('st').onclick=showSettings;
   $('hp').onclick=showHelp;
   $('go').onclick=()=>{
+    const nm=$('nmMenu').value.trim().slice(0,14);
+    if(!nm){                                           // 沒填暱稱不能開始：提示並游標跳到輸入框
+      const el=$('nmMenu');$('nmHint').textContent=T('needName');
+      el.classList.remove('bad');void el.offsetWidth;el.classList.add('bad');el.focus();
+      return;
+    }
+    memName=nm;lsSet(NAME_KEY,nm);
     speechSynthesis&&speechSynthesis.getVoices&&speechSynthesis.getVoices();
     startGame();
   };
@@ -1764,37 +1774,46 @@ function showOver(){
   const miss=G.mistakes.length
     ?`<div class="lab">${THi('review')}</div><div class="miss">${G.mistakes.map(m=>`<div><span class="zh">${esc(disp(m))}</span><span class="py">${esc(reading(m))}</span>${esc(gloss(m))}</div>`).join('')}</div>`
     :`<p>${T('noMiss')}</p>`;
+  const has=!!getName();                       // 主頁已輸入暱稱 → 結束自動上傳，不需要輸入框和按鈕
+  const lbBlock=G.score<=0?'':has
+    ?`<div class="lbsub"><div id="lbs" class="lbs">${G.lbOk?esc(T('submitted')):''}</div><button class="opt" id="sub" style="display:none;width:100%">${TH('submit')}</button></div>`
+    :`<div class="lbsub"><div class="lab" style="text-align:center;margin:0 0 6px">${THi('namePh')}</div><input class="nm" id="nm" maxlength="14" placeholder="${esc(T('nameIn'))}" value=""><button class="opt" id="sub">${TH('submit')}</button><div id="lbs" class="lbs"></div></div>`;
   o.innerHTML=`<div class="card">
     <h2>${TH('over')}</h2>
     <div class="big">${G.score}</div>
     <p>${T('best')}: ${best}</p>${G.score>=best&&G.score>0?`<p style="color:var(--ink);margin:0">🎉 ${THi('record')}</p>`:''}
-    ${G.score>0?`<div class="lbsub"><div class="lab" style="text-align:center;margin:0 0 6px">${THi('namePh')}</div><input class="nm" id="nm" maxlength="14" placeholder="${esc(T('nameIn'))}" value="${esc(getName())}"><button class="opt" id="sub">${TH('submit')}</button><div id="lbs" class="lbs"></div></div>`:''}
+    ${lbBlock}
     ${miss}
     <button class="main" id="again">${TH('again')}</button>
-    <button class="sub" id="lb">🏆 ${TH('board')}</button>
-    <button class="sub" id="menu">${TH('menu')}</button>
+    <div class="row2"><button class="sub" id="lb">🏆 ${TH('board')}</button><button class="sub" id="menu">🏠 ${TH('menu')}</button></div>
   </div>`;
   $('again').onclick=startGame;
   $('lb').onclick=()=>showBoard(showOver);
   $('menu').onclick=showMenu;
   if(G.score>0){
     const send=async()=>{
-      const nm=$('nm').value.trim().slice(0,14),st=$('lbs');
+      const nmEl=$('nm'),nm=(nmEl?nmEl.value:getName()).trim().slice(0,14),st=$('lbs');
       if(!nm){st.textContent=T('needName');return;}
-      lsSet(NAME_KEY,nm);st.textContent=T('sending');$('sub').disabled=true;
-      try{await submitScore(nm,G.score);if($('lbs')){$('lbs').textContent=T('submitted');setTimeout(()=>{if($('lbs')&&state==='over')showBoard(showOver);},900);}}   // 上傳成功 → 直接顯示排行榜
-      catch(e){if($('lbs'))$('lbs').textContent=T('submitFail');}
+      lsSet(NAME_KEY,nm);st.textContent=T('sending');
+      if($('sub')){$('sub').disabled=true;if(has)$('sub').style.display='none';}
+      try{
+        await submitScore(nm,G.score);G.lbOk=true;
+        if($('lbs')){$('lbs').textContent=T('submitted');setTimeout(()=>{if($('lbs')&&state==='over')showBoard(showOver);},900);}   // 上傳成功 → 直接顯示排行榜
+      }catch(e){
+        if($('lbs'))$('lbs').textContent=T('submitFail');
+        if($('sub'))$('sub').style.display='';                       // 失敗才出現「重新上傳」按鈕
+      }
       if($('sub'))$('sub').disabled=false;
     };
     $('sub').onclick=send;
-    $('nm').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send();}});
-    if(getName()&&!G.lbDone){G.lbDone=true;send();}   // 有存過暱稱就自動上傳
+    if($('nm'))$('nm').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send();}});
+    if(has&&!G.lbDone){G.lbDone=true;send();}   // 有暱稱就自動上傳
   }
 }
 function showPause(){
   state='pause';
   const o=$('ov');o.classList.add('show');
-  o.innerHTML=`<div class="card"><h1>${TH('pause')}</h1><button class="main" id="resume">${TH('resume')}</button><button class="sub" id="lb">🏆 ${TH('board')}</button><button class="sub" id="menu">${TH('menu')}</button></div>`;
+  o.innerHTML=`<div class="card"><h1>${TH('pause')}</h1><button class="main" id="resume">${TH('resume')}</button><div class="row2"><button class="sub" id="lb">🏆 ${TH('board')}</button><button class="sub" id="menu">🏠 ${TH('menu')}</button></div></div>`;
   $('resume').onclick=()=>{state='play';o.classList.remove('show');};
   $('lb').onclick=()=>showBoard(showPause);
   $('menu').onclick=showMenu;
