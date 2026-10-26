@@ -1282,18 +1282,17 @@ const FONT='"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
 function drawMaze(){
   ctx.fillStyle='#faf8f3';ctx.fillRect(0,0,COLS*cell,ROWS*cell);
   const W=(x,y)=>x>=0&&x<COLS&&y>=0&&y<ROWS&&grid[y][x]==='#';
-  const r=cell*.34,pad=0;
+  const r=cell*.34,pad=cell*.04;
   const shape=()=>{ctx.beginPath();
     for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
       if(!W(x,y))continue;
       const X=x*cell,Y=y*cell;
-      // 畫面外緣的牆不縮、不圓，讓外框貼齊
+      // 畫面外緣的牆不縮，讓外框貼齊
       const l=x===0?0:pad,t=y===0?0:pad,rg=x===COLS-1?0:pad,b=y===ROWS-1?0:pad;
       ctx.roundRect(X+l,Y+t,cell-l-rg,cell-t-b,r);
       if(W(x+1,y))ctx.rect(X+cell/2,Y+t,cell,cell-t-b);
       if(W(x,y+1))ctx.rect(X+l,Y+cell/2,cell-l-rg,cell);
     }};
-  shape();ctx.strokeStyle='#8a7a5c';ctx.lineWidth=3.4;ctx.lineJoin='round';ctx.stroke();   // 先畫較粗的墨色輪廓，再用竹色蓋上去 → 只留外緣一圈
   shape();
   ctx.fillStyle='#e9dfc6';ctx.fill();            // 竹色
   ctx.save();ctx.clip();                          // 竹編細紋（只畫在牆裡）
@@ -1301,6 +1300,7 @@ function drawMaze(){
   const g=cell/3;
   for(let k=-ROWS*cell;k<COLS*cell+ROWS*cell;k+=g){ctx.moveTo(k,0);ctx.lineTo(k+ROWS*cell,ROWS*cell);}
   ctx.stroke();ctx.restore();
+  shape();ctx.strokeStyle='#8a7a5c';ctx.lineWidth=1.6;ctx.lineJoin='round';ctx.stroke();   // 每一格各有墨色輪廓：一格一個小蒸籠
 }
 function rr(x,y,w,h,r){
   ctx.beginPath();
