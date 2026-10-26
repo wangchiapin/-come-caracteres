@@ -45,6 +45,11 @@ input.nm{font:inherit;font-size:15px;padding:9px;border:1px solid var(--line);bo
 #go{padding:8px;font-size:16px}
 @media (max-width:370px){.card .brand h1{font-size:30px}.logo{width:64px;height:64px}.row2 .sub{font-size:13px;padding:8px 2px}}
 .logo{width:78px;height:78px;flex:none;animation:bob 1.6s ease-in-out infinite}
+.lw{position:relative;flex:none;line-height:0}
+.sm{position:absolute;top:2px;width:7px;height:18px;border-radius:50%;background:rgba(150,140,120,.38);filter:blur(2.5px);opacity:0;pointer-events:none;animation:steam 2.8s ease-out infinite}
+.sm.s1{left:30%}.sm.s2{left:56%;animation-delay:1.4s}
+@keyframes steam{0%{transform:translate(0,10px) scaleY(.6);opacity:0}30%{opacity:.75}100%{transform:translate(6px,-24px) scaleY(1.3);opacity:0}}
+@media (prefers-reduced-motion:reduce){.sm{animation:none}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 .card h1{margin:0 0 2px;font-size:30px;font-weight:600;letter-spacing:2px}
 .card h2{margin:0 0 14px;font-size:15px;font-weight:400;color:var(--sub)}
@@ -1276,19 +1281,26 @@ const FONT='"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
 
 function drawMaze(){
   ctx.fillStyle='#faf8f3';ctx.fillRect(0,0,COLS*cell,ROWS*cell);
-  ctx.fillStyle='#e6e1d4';
-  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if(grid[y][x]==='#')ctx.fillRect(x*cell,y*cell,cell,cell);
-  ctx.strokeStyle='#a39b8a';ctx.lineWidth=1.6;ctx.lineCap='round';ctx.beginPath();
-  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
-    if(grid[y][x]!=='#')continue;
-    const X=x*cell,Y=y*cell;
-    const open=(a,b)=>a>=0&&a<COLS&&b>=0&&b<ROWS&&grid[b][a]!=='#';
-    if(open(x,y-1)){ctx.moveTo(X,Y);ctx.lineTo(X+cell,Y);}
-    if(open(x,y+1)){ctx.moveTo(X,Y+cell);ctx.lineTo(X+cell,Y+cell);}
-    if(open(x-1,y)){ctx.moveTo(X,Y);ctx.lineTo(X,Y+cell);}
-    if(open(x+1,y)){ctx.moveTo(X+cell,Y);ctx.lineTo(X+cell,Y+cell);}
-  }
-  ctx.stroke();
+  const W=(x,y)=>x>=0&&x<COLS&&y>=0&&y<ROWS&&grid[y][x]==='#';
+  const r=cell*.34,pad=0;
+  const shape=()=>{ctx.beginPath();
+    for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+      if(!W(x,y))continue;
+      const X=x*cell,Y=y*cell;
+      // 畫面外緣的牆不縮、不圓，讓外框貼齊
+      const l=x===0?0:pad,t=y===0?0:pad,rg=x===COLS-1?0:pad,b=y===ROWS-1?0:pad;
+      ctx.roundRect(X+l,Y+t,cell-l-rg,cell-t-b,r);
+      if(W(x+1,y))ctx.rect(X+cell/2,Y+t,cell,cell-t-b);
+      if(W(x,y+1))ctx.rect(X+l,Y+cell/2,cell-l-rg,cell);
+    }};
+  shape();ctx.strokeStyle='#8a7a5c';ctx.lineWidth=3.4;ctx.lineJoin='round';ctx.stroke();   // 先畫較粗的墨色輪廓，再用竹色蓋上去 → 只留外緣一圈
+  shape();
+  ctx.fillStyle='#e9dfc6';ctx.fill();            // 竹色
+  ctx.save();ctx.clip();                          // 竹編細紋（只畫在牆裡）
+  ctx.strokeStyle='rgba(150,122,78,.20)';ctx.lineWidth=1;ctx.beginPath();
+  const g=cell/3;
+  for(let k=-ROWS*cell;k<COLS*cell+ROWS*cell;k+=g){ctx.moveTo(k,0);ctx.lineTo(k+ROWS*cell,ROWS*cell);}
+  ctx.stroke();ctx.restore();
 }
 function rr(x,y,w,h,r){
   ctx.beginPath();
@@ -1602,7 +1614,7 @@ function showMenu(){
     ?`<div class="lab">${THi('mode')}</div><div class="row"><button class="opt on" data-set="mode" data-v="listen">${TH('modeListen')}</button></div><p style="margin:0">${T('listenOnlyNote')}</p>`
     :segRow(THi('mode'),'mode',[['text',TH(S.lang==='en'?'modeTextEn':'modeTextEs')],['listen',TH('modeListen')]],cfg.mode);
   o.innerHTML=`<div class="card">
-    <div class="brand"><img class="logo" id="logo" alt=""><div><h1>${S.script==='simp'?'吃字小笼包':'吃字小籠包'}</h1><h2>Come Caracteres</h2></div></div>
+    <div class="brand"><div class="lw"><img class="logo" id="logo" alt=""><i class="sm s1"></i><i class="sm s2"></i></div><div><h1>${S.script==='simp'?'吃字小笼包':'吃字小籠包'}</h1><h2>Come Caracteres</h2></div></div>
     ${modeRow}
     <button class="main" id="go">${TH('play')}</button>
     <div class="row2"><button class="sub" id="lb">🏆 ${TH('board')}</button><button class="sub" id="st">⚙ ${TH('settings')}</button><button class="sub" id="hp">❓ ${TH('help')}</button></div>
