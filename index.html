@@ -980,6 +980,56 @@ function speak(t){
   }catch(e){}
 }
 
+/* ---------- 背景音樂：用 Web Audio 即時合成的輕柔 8-bit（五聲音階），不需要音檔 ---------- */
+const MU={
+  sc:[0,2,4,7,9],                                   // 五聲音階（宮商角徵羽）
+  hz(d){const o=Math.floor(d/5),i=((d%5)+5)%5;return 261.63*Math.pow(2,(this.sc[i]+12*o)/12);}, // d=0 → C4
+  // 平常：輕快俏皮；null＝休止。一圈 32 步（每步一個八分音符）
+  norm:[4,null,5,null,4,3,2,null, 3,null,2,null,1,null,0,null,
+        2,null,3,null,4,null,3,2, 1,null,2,3,2,null,null,null],
+  normBass:[-5,-7,-6,-7,-5,-7,-6,-7],        // 每 4 步一個低音（C3 G2 A2 G2…）
+  // 變強（吃到「力」）：往上跳的琶音，速度更快
+  pow:[0,2,3,5,7,5,3,2, 0,2,3,5,7,5,3,5, 4,5,7,8,7,5,4,3, 2,3,5,7,9,7,5,3],
+  powBass:[-5,-5,-6,-6,-7,-7,-6,-6],
+  step:0,nextT:0,timer:null,
+  note(c,dest,t,f,dur,type,v){
+    const o=c.createOscillator(),g=c.createGain();
+    o.type=type;o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.012);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g);g.connect(dest);o.start(t);o.stop(t+dur+.02);
+  },
+  // 排一個步：mode＝'norm' | 'pow'；vol＝整體音量
+  sched(c,dest,t,i,mode,vol,dur){
+    const mel=mode==='pow'?this.pow:this.norm,bass=mode==='pow'?this.powBass:this.normBass;
+    const d=mel[i%mel.length];
+    if(d!==null)this.note(c,dest,t,this.hz(d)*(mode==='pow'?2:1),dur*(mode==='pow'?1.1:1.6),mode==='pow'?'square':'triangle',(mode==='pow'?.020:.030)*vol);
+    const every=mode==='pow'?2:4;
+    if(i%every===0)this.note(c,dest,t,this.hz(bass[(i/every|0)%bass.length])*1,dur*every*.8,'triangle',.05*vol);
+    if(mode==='pow'&&i%2===1)this.note(c,dest,t,this.hz(mel[i%mel.length]+5)*2,dur*.5,'square',.008*vol);   // 高音點綴
+  },
+  tick(){
+    try{
+      if(!ac||typeof G==='undefined'||!G||state!=='play'||document.hidden)return;
+      if(ac.state==='suspended')ac.resume();
+      const now=ac.currentTime;
+      if(this.nextT<now)this.nextT=now+.05;
+      while(this.nextT<now+.3){
+        const pow=G.fright>0,urgent=pow&&G.fright<3;
+        const dur=pow?(urgent?.115:.15):.22;
+        const vol=effMode()==='listen'?.35:.7;
+        this.sched(ac,ac.destination,this.nextT,this.step,pow?'pow':'norm',vol,dur);
+        this.step=(this.step+1)%32;this.nextT+=dur;
+      }
+    }catch(e){}
+  },
+  start(){
+    try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}catch(e){return;}
+    this.step=0;this.nextT=0;
+    if(!this.timer)this.timer=setInterval(()=>this.tick(),60);
+  }
+};
+
 /* ---------- 實體移動（格子到格子，平滑） ---------- */
 function makeEnt(x,y,speed){return {tx:x,ty:y,nx:x,ny:y,prog:0,dx:0,dy:0,speed};}
 function resetEnt(e,x,y){e.tx=x;e.ty=y;e.nx=x;e.ny=y;e.prog=0;e.dx=0;e.dy=0;}
@@ -1046,6 +1096,7 @@ function addMonster(i,wait){
   G.monsters.push(m);
 }
 function startGame(){
+  MU.start();
   buildMaze();
   try{HGPlays.start('all',getName());}catch(e){}
   G={score:0,lives:3,stage:1,correct:0,combo:0,items:[],monsters:[],pops:[],mistakes:[],
