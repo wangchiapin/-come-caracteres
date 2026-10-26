@@ -15,7 +15,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
 #hud{display:flex;justify-content:space-between;align-items:center;font-size:15px;padding:2px 4px 6px;color:var(--sub)}
 #hud b{color:var(--ink);font-size:18px;font-weight:600}
 #lives{letter-spacing:2px;color:var(--bad);font-size:18px}
-#prompt{display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 12px;min-height:56px}
+#prompt{display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 12px;min-height:60px}
 #speak{border:1px solid var(--line);background:#fff;border-radius:50%;width:38px;height:38px;font-size:18px;flex:none;cursor:pointer}
 #speak.hide{display:none}
 #ptext{flex:1;font-size:17px;line-height:1.3}
@@ -59,6 +59,13 @@ label.chk{display:flex;align-items:center;justify-content:center;gap:8px;font-si
 .miss{max-height:34vh;overflow:auto;text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:14px;line-height:1.8;touch-action:pan-y}
 .miss .zh{font-size:17px;font-weight:600;margin-right:6px}
 .miss .py{color:var(--sub);margin-right:6px}
+/* 中文在上、外語小字在下（跟其他遊戲一樣）；.tli＝同一行的小字 */
+.tl{display:block;font-size:.72em;font-weight:400;opacity:.75;line-height:1.25;margin-top:1px;letter-spacing:0}
+.tli{font-size:.78em;font-weight:400;opacity:.75;margin-left:4px;letter-spacing:0}
+.lab .tli{font-size:1em;margin-left:6px}
+.card h1 .tl,.card h2 .tl{font-size:13px;color:var(--sub);opacity:1}
+.hl{display:block;margin:6px 0}
+#ptext .tl{font-size:12px;color:var(--sub);opacity:1;margin-top:2px}
 </style>
 </head>
 <body>
@@ -896,10 +903,15 @@ const UI={
  copy:['© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有權利 / Todos los derechos reservados','© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有權利 / Todos los derechos reservados','© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有權利 / Todos los derechos reservados','© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有权利 / Todos los derechos reservados'],
 };
 const LI={es:0,en:1};
-function T(k,o){
-  const e=UI[k];let t=S.lang==='zh'?(S.script==='simp'?e[3]:e[2]):e[LI[S.lang]];
-  if(o)for(const q in o)t=t.replace('{'+q+'}',o[q]);
-  return t;
+function fillT(t,o){if(o)for(const q in o)t=t.replace('{'+q+'}',o[q]);return t;}
+function Tz(k,o){const e=UI[k];return fillT(S.script==='simp'?e[3]:e[2],o);}                 // 中文（繁／簡）
+function Tf(k,o){return S.lang==='zh'?'':fillT(UI[k][LI[S.lang]],o);}                          // 外語（純中文時是空的）
+function T(k,o){const f=Tf(k,o);return Tz(k,o)+(f?' · '+f:'');}                                // 一行純文字：中文 · 外語
+function TH(k,o){const f=Tf(k,o);return Tz(k,o)+(f?'<span class="tl">'+f+'</span>':'');}       // 中文在上、外語小字在下
+function THi(k,o){const f=Tf(k,o);return Tz(k,o)+(f?'<span class="tli">'+f+'</span>':'');}     // 同一行的小字
+function THow(){                                                                                // 玩法說明：每一行中文下面接外語小字
+  const z=Tz('howto').split('<br>'),f=S.lang==='zh'?[]:Tf('howto').split('<br>');
+  return z.map((l,i)=>'<span class="hl">'+l+(f[i]?'<span class="tl">'+f[i]+'</span>':'')+'</span>').join('');
 }
 const disp=w=>S.script==='simp'?(w.sc||w.zh):w.zh;                     // 字怎麼顯示（繁／簡）
 const gloss=w=>S.lang==='en'?w.en:S.lang==='es'?w.es:'';               // 翻譯（純中文模式沒有）
@@ -909,7 +921,7 @@ function reading(w){                                                    // 拼�
 const effMode=()=>S.lang==='zh'?'listen':cfg.mode;                      // 純中文時只能用聽的
 function applyLang(){
   document.documentElement.lang=S.lang==='zh'?(S.script==='simp'?'zh-CN':'zh-TW'):S.lang;
-  $('tScore').textContent=T('score');$('tStage').textContent=T('stage');
+  $('tScore').innerHTML=THi('score');$('tStage').innerHTML=THi('stage');
   $('speak').setAttribute('aria-label',T('listenAria'));
   document.title=(S.script==='simp'?'吃字小笼包':'吃字小籠包')+' · Come Caracteres';
 }
@@ -1010,7 +1022,7 @@ function startGame(){
   buildMaze();
   try{HGPlays.start('all',getName());}catch(e){}
   G={score:0,lives:3,stage:1,correct:0,combo:0,items:[],monsters:[],pops:[],mistakes:[],
-     q:null,lastZh:'',invincible:0,fright:0,freeze:1.4,banner:T('ready'),bannerT:1.4,time:0,flash:0,chomp:0};
+     q:null,lastZh:'',invincible:0,fright:0,freeze:1.4,banner:{zh:Tz('ready'),fg:Tf('ready')},bannerT:1.4,time:0,flash:0,chomp:0};
   P=makeEnt(PLAYER_START[0],PLAYER_START[1],5.2);P.want=null;P.face=Math.PI;
   const n=monstersForStage(1);
   for(let i=0;i<n;i++)addMonster(i,1.5+i*3);
@@ -1059,9 +1071,9 @@ function renderPrompt(){
   const q=G.q,r=reading(q),py=r?`<span class="py">${esc(r)}</span>`:'';
   $('speak').classList.toggle('hide',effMode()!=='listen');
   if(effMode()==='listen'){
-    $('ptext').innerHTML=`<span class="es">${esc(T('listenQ'))}</span>`+py;
+    $('ptext').innerHTML=`<span class="es">${esc(Tz('listenQ'))}</span>`+py+(Tf('listenQ')?`<span class="tl">${esc(Tf('listenQ'))}</span>`:'');
   }else{
-    $('ptext').innerHTML=`${esc(T('eat'))} <span class="es">${esc(gloss(q))}</span>`+py;
+    $('ptext').innerHTML=`${esc(Tz('eat'))} <span class="es">${esc(gloss(q))}</span>`+py;
   }
 }
 let fbTimer=0;
@@ -1088,7 +1100,7 @@ function eatItem(it){
     setFb(`✓ ${disp(G.q)}  ${reading(G.q)}${gloss(G.q)?'  =  '+gloss(G.q):''}`,'ok');
     if(G.correct%3===0&&!G.items.some(i=>i.kind==='power'))addItem(POWER,'power');
     if(G.correct%8===0){
-      G.stage++;G.banner=T('stageBanner',{n:G.stage});G.bannerT=1.6;
+      G.stage++;G.banner={zh:Tz('stageBanner',{n:G.stage}),fg:Tf('stageBanner',{n:G.stage})};G.bannerT=1.6;
       if(G.monsters.length<monstersForStage(G.stage))addMonster(G.monsters.length,2);
       buildMaze();resetPositions();G.items=[];G.freeze=1.3;G.invincible=1.6;
     }
@@ -1175,11 +1187,11 @@ async function fetchTop(){
 }
 function showBoard(back){
   const o=$('ov');o.classList.add('show');
-  o.innerHTML=`<div class="card"><h1>🏆 ${T('board')}</h1><div id="lbBody" class="lbbox"><p>${T('loading')}</p></div><button class="sub" id="lbBack">${T('back')}</button></div>`;
+  o.innerHTML=`<div class="card"><h1>🏆 ${TH('board')}</h1><div id="lbBody" class="lbbox"><p>${T('loading')}</p></div><button class="sub" id="lbBack">${TH('back')}</button></div>`;
   $('lbBack').onclick=back;
   fetchTop().then(({rows,uid})=>{
     const el=$('lbBody');if(!el)return;
-    el.innerHTML=rows.length?rows.map((r,i)=>`<div class="lbrow${r.id===uid?' me':''}"><span class="r">${i+1}</span><span class="n">${esc(r.name||'')}${r.id===uid?' '+T('you'):''}</span><span class="s">${r.score|0}</span></div>`).join(''):`<p>${T('boardEmpty')}</p>`;
+    el.innerHTML=rows.length?rows.map((r,i)=>`<div class="lbrow${r.id===uid?' me':''}"><span class="r">${i+1}</span><span class="n">${esc(r.name||'')}${r.id===uid?' '+Tz('you'):''}</span><span class="s">${r.score|0}</span></div>`).join(''):`<p>${T('boardEmpty')}</p>`;
   }).catch(()=>{const el=$('lbBody');if(el)el.innerHTML=`<p>${T('boardFail')}</p>`;});
 }
 
@@ -1537,7 +1549,10 @@ function draw(){
     const bh=cell*1.6,by=cell*ROWS*.42;
     ctx.fillRect(0,by,COLS*cell,bh);
     ctx.fillStyle='#faf8f3';ctx.font=`600 ${Math.floor(cell*.9)}px ${FONT}`;
-    ctx.fillText(G.banner,COLS*cell/2,by+bh/2);
+    if(G.banner.fg){
+      ctx.fillText(G.banner.zh,COLS*cell/2,by+bh*.38);
+      ctx.font=`400 ${Math.floor(cell*.5)}px ${FONT}`;ctx.fillText(G.banner.fg,COLS*cell/2,by+bh*.78);
+    }else ctx.fillText(G.banner.zh,COLS*cell/2,by+bh/2);
   }
 }
 
@@ -1557,16 +1572,16 @@ function showMenu(){
   const o=$('ov');o.classList.add('show');
   const zh=S.lang==='zh';
   const modeRow=zh
-    ?`<div class="lab">${T('mode')}</div><div class="row"><button class="opt on" data-set="mode" data-v="listen">${T('modeListen')}</button></div><p style="margin:0">${T('listenOnlyNote')}</p>`
-    :segRow(T('mode'),'mode',[['text',T(S.lang==='en'?'modeTextEn':'modeTextEs')],['listen',T('modeListen')]],cfg.mode);
+    ?`<div class="lab">${THi('mode')}</div><div class="row"><button class="opt on" data-set="mode" data-v="listen">${TH('modeListen')}</button></div><p style="margin:0">${T('listenOnlyNote')}</p>`
+    :segRow(THi('mode'),'mode',[['text',TH(S.lang==='en'?'modeTextEn':'modeTextEs')],['listen',TH('modeListen')]],cfg.mode);
   o.innerHTML=`<div class="card">
     <div class="brand"><img class="logo" id="logo" alt=""><div><h1>${S.script==='simp'?'吃字小笼包':'吃字小籠包'}</h1><h2>Come Caracteres</h2></div></div>
     ${modeRow}
-    <button class="main" id="go">${T('play')}</button>
-    <div class="row2"><button class="sub" id="lb">🏆 ${T('board')}</button><button class="sub" id="st">⚙ ${T('settings')}</button></div>
-    <p>${T('howto')}</p>
+    <button class="main" id="go">${TH('play')}</button>
+    <div class="row2"><button class="sub" id="lb">🏆 ${TH('board')}</button><button class="sub" id="st">⚙ ${TH('settings')}</button></div>
+    <p>${THow()}</p>
     <p>${T('best')}: <b style="color:var(--ink)">${best}</b></p>
-    <div class="copy">${esc(T('copy'))}</div>
+    <div class="copy">${esc(Tz('copy'))}</div>
   </div>`;
   fillLogo();
   o.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{
@@ -1586,12 +1601,12 @@ function showSettings(){
   state='menu';
   const o=$('ov');o.classList.add('show');
   o.innerHTML=`<div class="card">
-    <h1>⚙ ${T('settings')}</h1>
-    ${segRow(T('script'),'script',[['trad','繁體'],['simp','简体']],S.script)}
-    ${segRow(T('lang'),'lang',[['es','Español'],['en','English'],['zh',T('langZh')]],S.lang)}
-    ${segRow(T('phon'),'phon',[['pinyin','Pinyin'],['zhuyin','注音'],['both',T('phonBoth')],['off',T('phonOff')]],S.phon)}
-    ${segRow(T('rate'),'rate',[['slow',T('rateSlow')],['normal',T('rateNormal')],['fast',T('rateFast')]],S.rate)}
-    <button class="main" id="stBack">${T('back')}</button>
+    <h1>⚙ ${TH('settings')}</h1>
+    ${segRow(THi('script'),'script',[['trad','繁體'],['simp','简体']],S.script)}
+    ${segRow(THi('lang'),'lang',[['es','Chino + Español'],['en','Chino + English'],['zh','Solo chino']],S.lang)}
+    ${segRow(THi('phon'),'phon',[['pinyin','Pinyin'],['zhuyin','注音'],['both',TH('phonBoth')],['off',TH('phonOff')]],S.phon)}
+    ${segRow(THi('rate'),'rate',[['slow',TH('rateSlow')],['normal',TH('rateNormal')],['fast',TH('rateFast')]],S.rate)}
+    <button class="main" id="stBack">${TH('back')}</button>
   </div>`;
   o.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{S[b.dataset.set]=b.dataset.v;writeSettings(S);applyLang();showSettings();});
   $('stBack').onclick=showMenu;
@@ -1599,17 +1614,17 @@ function showSettings(){
 function showOver(){
   const o=$('ov');o.classList.add('show');
   const miss=G.mistakes.length
-    ?`<div class="lab">${T('review')}</div><div class="miss">${G.mistakes.map(m=>`<div><span class="zh">${esc(disp(m))}</span><span class="py">${esc(reading(m))}</span>${esc(gloss(m))}</div>`).join('')}</div>`
+    ?`<div class="lab">${THi('review')}</div><div class="miss">${G.mistakes.map(m=>`<div><span class="zh">${esc(disp(m))}</span><span class="py">${esc(reading(m))}</span>${esc(gloss(m))}</div>`).join('')}</div>`
     :`<p>${T('noMiss')}</p>`;
   o.innerHTML=`<div class="card">
-    <h2>${T('over')}</h2>
+    <h2>${TH('over')}</h2>
     <div class="big">${G.score}</div>
-    <p>${T('best')}: ${best}${G.score>=best&&G.score>0?' · '+T('record'):''}</p>
-    ${G.score>0?`<div class="lbsub"><input class="nm" id="nm" maxlength="14" placeholder="${esc(T('namePh'))}" value="${esc(getName())}"><button class="opt" id="sub">${T('submit')}</button><div id="lbs" class="lbs"></div></div>`:''}
+    <p>${T('best')}: ${best}</p>${G.score>=best&&G.score>0?`<p style="color:var(--ink);margin:0">🎉 ${THi('record')}</p>`:''}
+    ${G.score>0?`<div class="lbsub"><input class="nm" id="nm" maxlength="14" placeholder="${esc(Tz('namePh'))}" value="${esc(getName())}"><button class="opt" id="sub">${TH('submit')}</button><div id="lbs" class="lbs"></div></div>`:''}
     ${miss}
-    <button class="main" id="again">${T('again')}</button>
-    <button class="sub" id="lb">🏆 ${T('board')}</button>
-    <button class="sub" id="menu">${T('menu')}</button>
+    <button class="main" id="again">${TH('again')}</button>
+    <button class="sub" id="lb">🏆 ${TH('board')}</button>
+    <button class="sub" id="menu">${TH('menu')}</button>
   </div>`;
   $('again').onclick=startGame;
   $('lb').onclick=()=>showBoard(showOver);
@@ -1630,7 +1645,7 @@ function showOver(){
 function showPause(){
   state='pause';
   const o=$('ov');o.classList.add('show');
-  o.innerHTML=`<div class="card"><h1>${T('pause')}</h1><button class="main" id="resume">${T('resume')}</button><button class="sub" id="lb">🏆 ${T('board')}</button><button class="sub" id="menu">${T('menu')}</button></div>`;
+  o.innerHTML=`<div class="card"><h1>${TH('pause')}</h1><button class="main" id="resume">${TH('resume')}</button><button class="sub" id="lb">🏆 ${TH('board')}</button><button class="sub" id="menu">${TH('menu')}</button></div>`;
   $('resume').onclick=()=>{state='play';o.classList.remove('show');};
   $('lb').onclick=()=>showBoard(showPause);
   $('menu').onclick=showMenu;
