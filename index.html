@@ -911,7 +911,7 @@ const UI={
  listenAria:['Escuchar','Listen','聽','听'],
  board:['Ranking','Leaderboard','排行榜','排行榜'],
  nameLab:['Tu nombre','Your name','暱稱','暱称'],
- namePh:['Escribe tu nombre (máx. 14)','Enter your name (max 14)','輸入暱稱（最多 14 字）','输入暱称（最多 14 字）'],
+ namePh:['Escribe tu nombre','Enter your name','輸入暱稱','输入暱称'],
  nameIn:['Nombre','Name','暱稱','暱称'],
  submit:['Subir puntuación','Submit score','上傳分數','上传分数'],
  submitted:['✓ Subido al ranking','✓ Submitted to the leaderboard','✓ 已上傳到排行榜','✓ 已上传到排行榜'],
@@ -1700,6 +1700,7 @@ function showMenu(){
   o.innerHTML=`<div class="card">
     <div class="brand"><div class="lw"><img class="logo" id="logo" alt=""><i class="sm s1"></i><i class="sm s2"></i></div><div><h1>${S.script==='simp'?'吃字小笼包':'吃字小籠包'}</h1><h2>Come Caracteres</h2></div></div>
     ${modeRow}
+    <div class="lab">${THi('namePh')}</div><input class="nm" id="nmMenu" maxlength="14" autocomplete="off" placeholder="${esc(T('nameIn'))}" value="${esc(getName())}" style="margin:6px 0 0">
     <button class="main" id="go">${TH('play')}</button>
     <div class="row2"><button class="sub" id="lb">🏆 ${TH('board')}</button><button class="sub" id="st">⚙ ${TH('settings')}</button><button class="sub" id="hp">❓ ${TH('help')}</button></div>
     <p>${T('best')}: <b style="color:var(--ink)">${best}</b></p>
@@ -1712,6 +1713,7 @@ function showMenu(){
     else{S[k]=v;writeSettings(S);applyLang();}
     showMenu();
   });
+  $('nmMenu').addEventListener('input',()=>lsSet(NAME_KEY,$('nmMenu').value.trim().slice(0,14)));   // 打字時就先存起來，遊戲結束會自動上傳
   $('lb').onclick=()=>showBoard(showMenu);
   $('st').onclick=showSettings;
   $('hp').onclick=showHelp;
@@ -1767,7 +1769,7 @@ function showOver(){
       const nm=$('nm').value.trim().slice(0,14),st=$('lbs');
       if(!nm){st.textContent=T('needName');return;}
       lsSet(NAME_KEY,nm);st.textContent=T('sending');$('sub').disabled=true;
-      try{await submitScore(nm,G.score);if($('lbs'))$('lbs').textContent=T('submitted');}
+      try{await submitScore(nm,G.score);if($('lbs')){$('lbs').textContent=T('submitted');setTimeout(()=>{if($('lbs')&&state==='over')showBoard(showOver);},900);}}   // 上傳成功 → 直接顯示排行榜
       catch(e){if($('lbs'))$('lbs').textContent=T('submitFail');}
       if($('sub'))$('sub').disabled=false;
     };
