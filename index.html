@@ -66,6 +66,20 @@ label.chk{display:flex;align-items:center;justify-content:center;gap:8px;font-si
 .card h1 .tl,.card h2 .tl{font-size:13px;color:var(--sub);opacity:1}
 .hl{display:block;margin:6px 0}
 #ptext .tl{font-size:12px;color:var(--sub);opacity:1;margin-top:2px}
+/* 電腦大螢幕：選單與各頁卡片、分數列、題目放大（手機不變） */
+@media (min-width:900px) and (min-height:700px){
+  #app{max-width:min(100vw,calc((100vh - 165px)*15/19 + 16px),1000px)}
+  .card{zoom:1.45}
+  #hud{font-size:19px;padding:2px 6px 8px}
+  #hud b{font-size:24px}
+  #lives{font-size:23px}
+  #prompt{min-height:76px;padding:10px 16px;border-radius:14px}
+  #speak{width:46px;height:46px;font-size:22px}
+  #ptext{font-size:21px}
+  #ptext .es{font-size:25px}
+  #ptext .py{font-size:17px}
+  #fb{font-size:16px;min-height:20px}
+}
 </style>
 </head>
 <body>
