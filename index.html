@@ -49,7 +49,16 @@ input.nm{font:inherit;font-size:16px;padding:9px;border:1px solid var(--line);bo
 #go{padding:8px;font-size:16px}
 @media (max-width:370px){.card .brand h1{font-size:30px}.logo{width:64px;height:64px}.row2 .sub{font-size:13px;padding:8px 2px}}
 .logo{width:78px;height:78px;flex:none;animation:bob 1.6s ease-in-out infinite}
-.lw{position:relative;flex:none;line-height:0}
+.lw{position:relative;flex:none;line-height:0;cursor:pointer}
+.lw.hop{animation:hop .28s ease-out}.lw.bighop{animation:bighop .8s ease-out}
+@keyframes hop{0%,100%{transform:translateY(0)}45%{transform:translateY(-10px) scale(1.04,.96)}}
+@keyframes bighop{0%{transform:translateY(0) scale(1,1)}20%{transform:translateY(4px) scale(1.08,.9)}50%{transform:translateY(-40px) rotate(-8deg) scale(.96,1.06)}75%{transform:translateY(-6px) rotate(4deg)}100%{transform:translateY(0) rotate(0)}}
+.puff{position:absolute;left:50%;top:6px;width:20px;height:20px;margin-left:-10px;border-radius:50%;background:rgba(255,255,255,.95);box-shadow:0 0 0 1px rgba(163,155,138,.35);opacity:0;pointer-events:none;animation:puffup 1.2s ease-out}
+@keyframes puffup{0%{opacity:0;transform:translate(0,10px) scale(.4)}20%{opacity:.9}100%{opacity:0;transform:translate(var(--dx),-78px) scale(1.7)}}
+.egg{display:none;margin:2px auto 8px;padding:8px 14px;border:1px solid #c4b78f;background:#f4edd9;border-radius:12px;text-align:center;line-height:1.35}
+.egg.show{display:block;animation:eggin .25s ease-out}
+.egg b{font-size:20px;font-weight:600}.egg .py{color:var(--sub);font-size:14px;margin-left:6px}.egg .fg{font-size:12px;color:var(--sub);margin-top:2px}
+@keyframes eggin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .sm{position:absolute;top:2px;width:7px;height:18px;border-radius:50%;background:rgba(150,140,120,.38);filter:blur(2.5px);opacity:0;pointer-events:none;animation:steam 2.8s ease-out infinite}
 .sm.s1{left:30%}.sm.s2{left:56%;animation-delay:1.4s}
 @keyframes steam{0%{transform:translate(0,10px) scaleY(.6);opacity:0}30%{opacity:.75}100%{transform:translate(6px,-24px) scaleY(1.3);opacity:0}}
@@ -750,7 +759,9 @@ const BANK=[
  {zh:'檯燈',sc:'台灯',py:'táidēng',zy:'ㄊㄞˊㄉㄥ',es:'lámpara de escritorio',en:'desk lamp'}
 ];
 /* BANK:END */
-const POWER={zh:'力',sc:'力',py:'lì',zy:'ㄌㄧˋ',es:'',en:''};
+const POWER={zh:'珍珠奶茶',sc:'珍珠奶茶',py:'zhēnzhū nǎichá',zy:'',es:'',en:''};   // 吃到會變強的珍珠奶茶（畫面上畫成圖案，不顯示字）
+const BOBA_SVG='<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 100 100"><defs><clipPath id="cup"><path d="M29 32 L71 32 L66 86 Q65 92 59 92 L41 92 Q35 92 34 86 Z"/></clipPath></defs><g stroke="#3b3935" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round"><path d="M58 26 L65 7 L72 4" fill="none" stroke-width="8.6"/><path d="M58 26 L65 7 L72 4" fill="none" stroke="#7aa07a" stroke-width="4.6"/><path d="M29 32 L71 32 L66 86 Q65 92 59 92 L41 92 Q35 92 34 86 Z" fill="#f4ead3"/><g clip-path="url(#cup)" stroke="none"><rect x="20" y="42" width="60" height="55" fill="#dcbb8c"/><path d="M20 42 Q30 38 40 42 T60 42 T80 42 L80 46 L20 46 Z" fill="#dcbb8c"/><rect x="20" y="42" width="60" height="3" fill="#cfab78" opacity=".8"/></g><path d="M29 32 L71 32 L66 86 Q65 92 59 92 L41 92 Q35 92 34 86 Z" fill="none"/><g fill="#4a3a30" stroke="#3b3935" stroke-width="1.6"><circle cx="40.5" cy="85" r="4.9"/><circle cx="51" cy="86.2" r="4.9"/><circle cx="61.5" cy="84.6" r="4.7"/><circle cx="45.5" cy="76.4" r="4.7"/><circle cx="56.5" cy="75.8" r="4.7"/></g><g fill="#fff" stroke="none" opacity=".75"><circle cx="39" cy="83.4" r="1.2"/><circle cx="49.6" cy="84.6" r="1.2"/><circle cx="60.2" cy="83" r="1.1"/><circle cx="44.2" cy="74.8" r="1.1"/><circle cx="55.2" cy="74.2" r="1.1"/></g><path d="M25 33 Q25 24 35 24 L65 24 Q75 24 75 33 Z" fill="#f7f3e8"/><path d="M27 33 L73 33" fill="none" stroke-width="2.6"/><g stroke="none"><circle cx="43.5" cy="54" r="2.5" fill="#3b3935"/><circle cx="57.5" cy="54" r="2.5" fill="#3b3935"/><circle cx="39" cy="59" r="3.4" fill="#e9a99b" opacity=".75"/><circle cx="62" cy="59" r="3.4" fill="#e9a99b" opacity=".75"/></g><path d="M46 58 Q50.5 63.5 55 58" fill="none" stroke-width="2.2"/></g><g fill="none" stroke="#d9a441" stroke-width="2.6" stroke-linecap="round"><path d="M15 40 L20 44"/><path d="M12 54 L18 54"/><path d="M85 40 L80 44"/><path d="M88 54 L82 54"/><path d="M20 24 L25 28"/><path d="M82 22 L78 27"/></g></svg>';
+const BOBA_IMG=new Image();BOBA_IMG.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(BOBA_SVG);
 
 /* ---------- 地圖 15 x 19（# 牆；第 9 列兩側是穿越隧道；每場、每升一級都重新隨機產生） ---------- */
 const COLS=15,ROWS=19,TUNNEL=9;
@@ -881,6 +892,9 @@ const UI={
  score:['Puntos','Score','分數','分数'],
  stage:['Nivel','Level','關卡','关卡'],
  ready:['¡Listo!','Ready!','準備！','准备！'],
+ bobaFb:['🧋 ¡Boba te da energía! Los monstruos van más lentos.','🧋 Bubble tea power! The monsters slow down.','🧋 喝了珍珠奶茶，精神百倍！','🧋 喝了珍珠奶茶，精神百倍！'],
+ basketOne:['¡Cesta llena!','Basket full!','滿籠！','满笼！'],
+ basketN:['¡{n} cestas!','{n} baskets!','{c}籠！','{c}笼！'],
  stageBanner:['Nivel {n}','Level {n}','第 {n} 關','第 {n} 关'],
  eat:['Come →','Eat →','吃掉：','吃掉：'],
  listenQ:['Escucha y come el carácter','Listen and eat the character','聽聲音，吃掉正確的字','听声音，吃掉正确的字'],
@@ -901,7 +915,7 @@ const UI={
  rateNormal:['Normal','Normal','中','中'],
  rateFast:['Rápida','Fast','快','快'],
  play:['Jugar','Play','開始','开始'],
- howto:['Desliza (o usa las flechas) para moverte.<br>Come el carácter correcto. Un error = −50 puntos.<br>Si un monstruo te toca pierdes una vida ♥.<br>Come 力 para poder comer monstruos.','Swipe (or use the arrow keys) to move.<br>Eat the correct character. A mistake = −50 points.<br>If a monster touches you, you lose a life ♥.<br>Eat 力 to be able to eat monsters.','滑動螢幕（或用方向鍵）移動。<br>吃掉正確的字，吃錯扣 50 分。<br>被怪物碰到會少一條命 ♥。<br>吃到「力」就能反過來吃怪物。','滑动屏幕（或用方向键）移动。<br>吃掉正确的字，吃错扣 50 分。<br>被怪物碰到会少一条命 ♥。<br>吃到「力」就能反过来吃怪物。'],
+ howto:['Desliza (o usa las flechas) para moverte.<br>Come el carácter correcto. Un error = −50 puntos.<br>Si un monstruo te toca pierdes una vida ♥.<br>Toma el té de perlas (珍珠奶茶) para poder comer monstruos.','Swipe (or use the arrow keys) to move.<br>Eat the correct character. A mistake = −50 points.<br>If a monster touches you, you lose a life ♥.<br>Drink the bubble tea (珍珠奶茶) to be able to eat monsters.','滑動螢幕（或用方向鍵）移動。<br>吃掉正確的字，吃錯扣 50 分。<br>被怪物碰到會少一條命 ♥。<br>喝到珍珠奶茶就能反過來吃怪物。','滑动屏幕（或用方向键）移动。<br>吃掉正确的字，吃错扣 50 分。<br>被怪物碰到会少一条命 ♥。<br>喝到珍珠奶茶就能反过来吃怪物。'],
  listenOnlyNote:['En modo «Solo chino» solo se puede jugar en modo escucha.','In “Chinese only” mode you can only play in listening mode.','純中文模式只能用「聽力模式」來玩。','纯中文模式只能用「听力模式」来玩。'],
  best:['Mejor puntuación','Best score','最高分','最高分'],
  over:['Fin del juego','Game over','遊戲結束','游戏结束'],
@@ -971,7 +985,8 @@ const sfx={
   bad(){beep(200,.22,'sawtooth',.04,140);},
   hit(){beep(320,.45,'square',.04,70);},
   power(){beep(520,.3,'triangle',.06,1040);},
-  eatM(){beep(400,.2,'square',.04,900);}
+  eatM(){beep(400,.2,'square',.04,900);},
+  basket(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.16,'sine',.05),i*90));}
 };
 function speak(t){
   if(!('speechSynthesis' in window))return;                              // 找不到中文聲音的提示由 voicehint 負責
@@ -993,7 +1008,7 @@ const MU={
   norm:[4,null,5,null,4,3,2,null, 3,null,2,null,1,null,0,null,
         2,null,3,null,4,null,3,2, 1,null,2,3,2,null,null,null],
   normBass:[-5,-7,-6,-7,-5,-7,-6,-7],        // 每 4 步一個低音（C3 G2 A2 G2…）
-  // 變強（吃到「力」）：往上跳的琶音，速度更快
+  // 變強（喝到珍珠奶茶）：往上跳的琶音，速度更快
   pow:[0,2,3,5,7,5,3,2, 0,2,3,5,7,5,3,5, 4,5,7,8,7,5,4,3, 2,3,5,7,9,7,5,3],
   powBass:[-5,-5,-6,-6,-7,-7,-6,-6],
   step:0,nextT:0,timer:null,
@@ -1203,6 +1218,14 @@ function updateHud(){
   $('stagev').textContent=G.stage;
   $('lives').textContent='♥'.repeat(G.lives)+'♡'.repeat(Math.max(0,3-G.lives));
 }
+/* 彩蛋：連續答對每滿 10 題「滿籠」— 純特效，不加分 */
+function fullBasket(n){
+  const c=['','滿','兩','三','四','五','六','七','八','九','十'][n]||n,pp=pos(P);
+  G.banner=n===1?{zh:Tz('basketOne'),fg:Tf('basketOne')}:{zh:Tz('basketN',{n,c}),fg:Tf('basketN',{n,c})};G.bannerT=1.5;
+  G.puffs=G.puffs||[];
+  for(let i=0;i<26;i++)G.puffs.push({x:(pp.x+.5)*cell+(Math.random()-.5)*cell*1.4,y:(pp.y+.5)*cell,vx:(Math.random()-.5)*cell*1.6,vy:-cell*(1.2+Math.random()*2.2),r:cell*(.35+Math.random()*.5),t:1+Math.random()*.4});
+  sfx.basket();
+}
 function pop(x,y,text,color){G.pops.push({x:(x+.5)*cell,y:(y+.5)*cell,text,color,t:1});}
 
 /* ---------- 吃字與碰撞 ---------- */
@@ -1211,6 +1234,7 @@ function eatItem(it){
   G.items.splice(G.items.indexOf(it),1);
   if(it.kind==='ok'){
     G.combo++;
+    if(G.combo%10===0)fullBasket(G.combo/10);
     const pts=100+Math.min(G.combo-1,9)*10;
     G.score+=pts;G.correct++;G.chomp=.3;
     pop(it.x,it.y,'+'+pts,'#6b8e6b');sfx.ok();
@@ -1233,7 +1257,7 @@ function eatItem(it){
     addItem(pickDistractor(G.q),'bad');
     updateHud();
   }else{
-    G.fright=8;G.score+=50;pop(it.x,it.y,'+50','#b08d3c');sfx.power();updateHud();
+    G.fright=8;G.score+=50;pop(it.x,it.y,'+50','#b08d3c');sfx.power();setFb(T('bobaFb'),'ok');updateHud();
   }
 }
 function eatMonster(m){
@@ -1325,6 +1349,7 @@ function update(dt){
   if(G.flash>0)G.flash-=dt;
   if(G.chomp>0)G.chomp-=dt;
   G.pops.forEach(p=>{p.t-=dt*1.1;p.y-=dt*24;});
+  if(G.puffs){G.puffs.forEach(f=>{f.t-=dt*1.1;f.x+=f.vx*dt;f.y+=f.vy*dt;f.vx*=.985;f.r+=dt*cell*.5;});G.puffs=G.puffs.filter(f=>f.t>0);}
   G.pops=G.pops.filter(p=>p.t>0);
   if(G.freeze>0){G.freeze-=dt;return;}
   if(G.invincible>0)G.invincible-=dt;
@@ -1428,7 +1453,9 @@ function drawItem(it){
   ctx.strokeStyle=power?'#a8782a':hint?'#6b8e6b':'#b8a45a';ctx.lineWidth=power?2:hint?2.6:1.2;ctx.stroke();
   ctx.fillStyle='#3b3935';ctx.textAlign='center';ctx.textBaseline='middle';
   const cx=bcx,cy=(it.y+.54)*cell;
-  if(n<=2){
+  if(power){                                              // 珍珠奶茶：畫圖案，不寫字
+    if(BOBA_IMG.complete&&BOBA_IMG.naturalWidth){const z=cell*.9;ctx.drawImage(BOBA_IMG,bcx-z/2,(it.y+.5)*cell-z/2,z,z);}
+  }else if(n<=2){
     ctx.font=`${Math.floor(cell*(n===1?.8:.7))}px ${FONT}`;ctx.fillText(txt,cx,cy,bw-6);
   }else if(n===3){ // 3 字：一行，字略為壓窄
     ctx.font=`${Math.floor(cell*.62)}px ${FONT}`;ctx.fillText(txt,cx,cy,bw-6);
@@ -1677,6 +1704,11 @@ function draw(){
   G.monsters.forEach(drawMonster);
   drawPlayer();
   ctx.textAlign='center';ctx.textBaseline='middle';
+  if(G.puffs)G.puffs.forEach(f=>{            // 蒸氣
+    ctx.globalAlpha=Math.max(0,Math.min(.75,f.t*.7));ctx.fillStyle='#ffffff';
+    ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,6.2832);ctx.fill();
+    ctx.globalAlpha=Math.max(0,Math.min(.35,f.t*.3));ctx.strokeStyle='#a39b8a';ctx.lineWidth=1.2;ctx.stroke();
+  });
   G.pops.forEach(p=>{
     ctx.globalAlpha=Math.max(0,p.t);ctx.fillStyle=p.color;
     ctx.font=`600 ${Math.floor(cell*.6)}px ${FONT}`;ctx.fillText(p.text,p.x,p.y);
@@ -1706,6 +1738,31 @@ function fillLogo(n){                                 // 開始頁的小籠包�
   if(_logo){el.src=_logo;el.style.visibility='visible';}
   else if((n||0)<40){el.style.visibility='hidden';setTimeout(()=>fillLogo((n||0)+1),100);}
 }
+/* 彩蛋：主頁連點小籠包 5 下 → 跳起來、噴蒸氣、說一句台灣常用語 */
+const EGG=[
+  {zh:'吃飽了嗎？',sc:'吃饱了吗？',py:'chī bǎo le ma?',es:'¿Ya comiste? (saludo muy común en Taiwán)',en:'Have you eaten yet? (a very common greeting in Taiwan)'},
+  {zh:'好好吃！',sc:'好好吃！',py:'hǎo hǎochī!',es:'¡Qué rico!',en:'So delicious!'},
+  {zh:'再來一籠！',sc:'再来一笼！',py:'zài lái yì lóng!',es:'¡Otra cesta más!',en:'One more basket!'},
+  {zh:'小心燙！',sc:'小心烫！',py:'xiǎoxīn tàng!',es:'¡Cuidado, está caliente!',en:'Careful, it’s hot!'}
+];
+let eggTap=0,eggTapT=0,eggIdx=0,eggHide=0;
+function setupLogoEgg(){
+  const lw=document.querySelector('.lw'),box=$('egg');if(!lw||!box)return;
+  lw.onclick=()=>{
+    const now=Date.now();
+    if(now-eggTapT>2000)eggTap=0;
+    eggTapT=now;eggTap++;
+    lw.classList.remove('hop','bighop');void lw.offsetWidth;
+    if(eggTap<5){lw.classList.add('hop');return;}
+    eggTap=0;lw.classList.add('bighop');
+    for(let i=0;i<8;i++){const f=document.createElement('i');f.className='puff';
+      f.style.setProperty('--dx',((i-3.5)*13+Math.random()*8)+'px');f.style.animationDelay=(i*40)+'ms';lw.appendChild(f);setTimeout(()=>f.remove(),1500);}
+    const e=EGG[eggIdx++%EGG.length],fg=S.lang==='es'?e.es:S.lang==='en'?e.en:'';
+    box.innerHTML=`<b>${esc(S.script==='simp'?e.sc:e.zh)}</b> <span class="py">${esc(e.py)}</span>${fg?`<div class="fg">${esc(fg)}</div>`:''}`;
+    box.classList.add('show');clearTimeout(eggHide);eggHide=setTimeout(()=>box.classList.remove('show'),3200);
+    speak(e.zh);
+  };
+}
 function showMenu(){
   state='menu';
   const o=$('ov');o.classList.add('show');
@@ -1715,6 +1772,7 @@ function showMenu(){
     :segRow(THi('mode'),'mode',[['text',TH(S.lang==='en'?'modeTextEn':'modeTextEs')],['listen',TH('modeListen')]],cfg.mode);
   o.innerHTML=`<div class="card">
     <div class="brand"><div class="lw"><img class="logo" id="logo" alt=""><i class="sm s1"></i><i class="sm s2"></i></div><div><h1>${S.script==='simp'?'吃字小笼包':'吃字小籠包'}</h1><h2>Come Caracteres</h2></div></div>
+    <div id="egg" class="egg"></div>
     ${modeRow}
     <div class="lab">${THi('namePh')}</div><input id="nmMenu" maxlength="14" autocomplete="off" placeholder="${esc(T('nameIn'))}" value="${esc(getName())}" class="nm cp"><div id="nmHint" class="lbs" style="min-height:0;margin:4px 0 0;color:var(--bad)"></div>
     <button class="main" id="go">${TH('play')}</button>
@@ -1722,7 +1780,7 @@ function showMenu(){
     <p>${T('best')}: <b style="color:var(--ink)">${best}</b></p>
     <div class="copy">${esc(Tz('copy'))}</div>
   </div>`;
-  fillLogo();
+  fillLogo();setupLogoEgg();
   o.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.set,v=b.dataset.v;
     if(k==='mode'){cfg.mode=v;lsSet('cc_cfg',cfg);}
