@@ -1079,9 +1079,40 @@ function pickDistractor(q){
   }
   return BANK[rnd(BANK.length)];
 }
+/* 公平檢查：錯誤字卡不可以把通往正確字卡的路堵死（否則玩家一定得先吃一張錯的） */
+function targetReachable(){
+  const goal=G.items.find(i=>i.kind==='ok');
+  if(!goal)return true;
+  const block=new Set(G.items.filter(i=>i.kind==='bad').map(i=>i.x+','+i.y));
+  const seen=new Set(),q=[];
+  [[P.tx,P.ty],[P.nx,P.ny]].forEach(([x,y])=>{x=wrapX(x);const k=x+','+y;if(!seen.has(k)&&!block.has(k)){seen.add(k);q.push([x,y]);}});
+  while(q.length){
+    const [x,y]=q.shift();
+    if(x===goal.x&&y===goal.y)return true;
+    for(const [dx,dy] of DIRS){
+      let nx=x+dx;const ny=y+dy;
+      if(isWall(nx,ny))continue;
+      nx=wrapX(nx);
+      const k=nx+','+ny;
+      if(seen.has(k)||block.has(k))continue;
+      seen.add(k);q.push([nx,ny]);
+    }
+  }
+  return false;
+}
 function addItem(w,kind){
-  const [x,y]=freeCell(5);
-  G.items.push({x,y,w,zh:w.zh,kind,t:kind==='power'?14:0,seed:Math.random()*6});
+  if(kind!=='bad'){
+    const [x,y]=freeCell(5);
+    G.items.push({x,y,w,zh:w.zh,kind,t:kind==='power'?14:0,seed:Math.random()*6});
+    return;
+  }
+  for(let tries=0;tries<60;tries++){        // 試著找一個不會堵路的位置；真的找不到就少放一張
+    const [x,y]=freeCell(5);
+    const it={x,y,w,zh:w.zh,kind,t:0,seed:Math.random()*6};
+    G.items.push(it);
+    if(targetReachable())return;
+    G.items.pop();
+  }
 }
 function newQuestion(){
   if(!G.bag||!G.bag.length){ // 洗牌袋：整個字庫抽完才重洗，一局內不會重複
@@ -1101,7 +1132,7 @@ function renderPrompt(){
   const q=G.q,r=reading(q),py=r?`<span class="py">${esc(r)}</span>`:'';
   $('speak').classList.toggle('hide',effMode()!=='listen');
   if(effMode()==='listen'){
-    $('ptext').innerHTML=`<span class="es">${esc(Tz('listenQ'))}</span>`+py+(Tf('listenQ')?`<span class="tl">${esc(Tf('listenQ'))}</span>`:'');
+    $('ptext').innerHTML=`<span class="es">${esc(Tz('listenQ'))}</span>`+(Tf('listenQ')?`<span class="tl">${esc(Tf('listenQ'))}</span>`:'');
   }else{
     $('ptext').innerHTML=`${esc(Tz('eat'))} <span class="es">${esc(gloss(q))}</span>`+py;
   }
