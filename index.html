@@ -1018,6 +1018,11 @@ function setWant(dx,dy){
     const ntx=P.nx,nty=P.ny;
     if(ntx<0||ntx>=COLS)return;
     P.nx=P.tx;P.ny=P.ty;P.tx=ntx;P.ty=nty;P.prog=1-P.prog;P.dx=-P.dx;P.dy=-P.dy;
+    return;
+  }
+  // 轉彎寬容：剛過路口一小段（不到 0.4 格）才滑，只要路口那條岔路是通的，就回到路口轉進去
+  if((P.dx||P.dy)&&(dx||dy)&&P.dx*dx+P.dy*dy===0&&P.prog>0&&P.prog<0.4&&!isWall(P.tx+dx,P.ty+dy)){
+    setDir(P,dx,dy);P.prog=0;
   }
 }
 
@@ -1694,7 +1699,7 @@ document.addEventListener('touchmove',e=>{
   if(e.target.closest('.miss'))return;
   e.preventDefault();
   const t=e.touches[0],dx=t.clientX-tx0,dy=t.clientY-ty0;
-  if(Math.max(Math.abs(dx),Math.abs(dy))<16)return;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<8)return;
   if(Math.abs(dx)>Math.abs(dy))setWant(dx>0?1:-1,0);else setWant(0,dy>0?1:-1);
   tx0=t.clientX;ty0=t.clientY;
 },{passive:false});
