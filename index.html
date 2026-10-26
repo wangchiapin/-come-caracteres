@@ -20,7 +20,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
 #speak.hide{display:none}
 #ptext{flex:1;font-size:17px;line-height:1.3}
 #ptext .es{font-weight:600;font-size:20px}
-#ptext .py{color:var(--sub);font-size:14px;margin-left:6px}
+#ptext .py{color:var(--sub);font-size:19px;margin-left:8px}
 #fb{font-size:13px;color:var(--sub);min-height:16px}
 #fb.ok{color:var(--ok)} #fb.bad{color:var(--bad)}
 #stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;margin-top:8px}
@@ -79,7 +79,7 @@ label.chk{display:flex;align-items:center;justify-content:center;gap:8px;font-si
   #speak{width:46px;height:46px;font-size:22px}
   #ptext{font-size:21px}
   #ptext .es{font-size:25px}
-  #ptext .py{font-size:17px}
+  #ptext .py{font-size:24px}
   #fb{font-size:16px;min-height:20px}
 }
 </style>
@@ -1056,8 +1056,11 @@ function startGame(){
 function freeCell(minDist){
   const occ=new Set(G.items.map(i=>i.x+','+i.y));
   const pp=pos(P);
-  const c=SPAWN.filter(([x,y])=>!occ.has(x+','+y)&&Math.abs(x-pp.x)+Math.abs(y-pp.y)>=minDist);
-  return c.length?c[rnd(c.length)]:SPAWN[rnd(SPAWN.length)];
+  const far=(x,y)=>G.items.every(i=>Math.abs(x-i.x)+Math.abs(y-i.y)>=3&&!(Math.abs(x-i.x)<=2&&Math.abs(y-i.y)<=1)); // 寬字卡不要疊在一起
+  const base=SPAWN.filter(([x,y])=>!occ.has(x+','+y)&&Math.abs(x-pp.x)+Math.abs(y-pp.y)>=minDist);
+  const c=base.filter(([x,y])=>far(x,y));
+  if(c.length)return c[rnd(c.length)];
+  return base.length?base[rnd(base.length)]:SPAWN[rnd(SPAWN.length)];
 }
 /* 干擾項：整個字庫裡挑；不能跟正解有相同的字、不能是同義（西文或英文相同）；字數盡量跟正解一樣 */
 const nch=z=>[...z].length;
@@ -1295,9 +1298,11 @@ function rr(x,y,w,h,r){
 function drawItem(it){
   const txt=disp(it.w),n=[...txt].length;
   const s=cell*.92;
-  // 3～4 字的詞：框略大於一格（橫向 1.6／1.25 格），字才看得清楚
-  const bw=n===3?cell*1.6:n>=4?cell*1.2:s,bh=n>=4?cell*1.2:s;
-  const x=(it.x+.5)*cell-bw/2,y=(it.y+.5)*cell-bh/2;
+  // 字卡可以比一格寬（只是畫在上面，牆壁本來就不能走）：字才看得清楚
+  const bw=n===1?cell:n===2?cell*1.8:n===3?cell*2.05:cell*1.65,bh=n>=4?cell*1.4:n===1?cell:s;
+  let x=(it.x+.5)*cell-bw/2;const y=(it.y+.5)*cell-bh/2;
+  x=Math.max(2,Math.min(COLS*cell-bw-2,x));             // 靠邊時往內推，不被切掉
+  const bcx=x+bw/2;
   const power=it.kind==='power';
   let alpha=1;
   if(power&&it.t<3)alpha=Math.sin(G.time*14)>0?1:.35;
@@ -1307,18 +1312,18 @@ function drawItem(it){
     ctx.save();ctx.translate((it.x+.5)*cell,(it.y+.5)*cell);ctx.scale(k,k);ctx.translate(-(it.x+.5)*cell,-(it.y+.5)*cell);
   }
   rr(x,y,bw,bh,s*.22);
-  ctx.fillStyle=power?'#efe3c2':'#ffffff';ctx.fill();
-  ctx.strokeStyle=power?'#b08d3c':'#8a8478';ctx.lineWidth=power?2:1.2;ctx.stroke();
+  ctx.fillStyle=power?'#f1c97a':'#fff3bf';ctx.fill();
+  ctx.strokeStyle=power?'#a8782a':'#b8a45a';ctx.lineWidth=power?2:1.2;ctx.stroke();
   ctx.fillStyle='#3b3935';ctx.textAlign='center';ctx.textBaseline='middle';
-  const cx=(it.x+.5)*cell,cy=(it.y+.54)*cell;
+  const cx=bcx,cy=(it.y+.54)*cell;
   if(n<=2){
-    ctx.font=`${Math.floor(cell*(n===1?.7:.42))}px ${FONT}`;ctx.fillText(txt,cx,cy);
+    ctx.font=`${Math.floor(cell*(n===1?.8:.7))}px ${FONT}`;ctx.fillText(txt,cx,cy,bw-6);
   }else if(n===3){ // 3 字：一行，字略為壓窄
-    ctx.font=`${Math.floor(cell*.46)}px ${FONT}`;ctx.fillText(txt,cx,cy,cell*1.5);
+    ctx.font=`${Math.floor(cell*.62)}px ${FONT}`;ctx.fillText(txt,cx,cy,bw-6);
   }else{ // 4 字：兩行各 2 字
     const a=[...txt];
-    ctx.font=`${Math.floor(cell*.46)}px ${FONT}`;
-    ctx.fillText(a[0]+a[1],cx,cy-cell*.24);ctx.fillText(a[2]+a[3],cx,cy+cell*.22);
+    ctx.font=`${Math.floor(cell*.6)}px ${FONT}`;
+    ctx.fillText(a[0]+a[1],cx,cy-cell*.3,bw-6);ctx.fillText(a.slice(2).join(''),cx,cy+cell*.3,bw-6);
   }
   if(power)ctx.restore();
   ctx.globalAlpha=1;
