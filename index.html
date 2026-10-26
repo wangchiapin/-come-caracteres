@@ -860,10 +860,11 @@ const UI={
  eat:['Come →','Eat →','吃掉：','吃掉：'],
  listenQ:['Escucha y come el carácter','Listen and eat the character','聽聲音，吃掉正確的字','听声音，吃掉正确的字'],
  mode:['Modo','Mode','模式','模式'],
- modeTextEs:['Español → 中文','Español → 中文','西文 → 中文','西文 → 中文'],
- modeTextEn:['English → 中文','English → 中文','英文 → 中文','英文 → 中文'],
- modeListen:['Escuchar 🔊','Listen 🔊','聽 🔊','听 🔊'],
+ modeTextEs:['Modo texto','Text mode','文字模式','文字模式'],
+ modeTextEn:['Modo texto','Text mode','文字模式','文字模式'],
+ modeListen:['Modo escucha','Listening mode','聽力模式 🔊','听力模式 🔊'],
  settings:['Ajustes','Settings','設定','设置'],
+ help:['Cómo jugar','How to play','玩法說明','玩法说明'],
  script:['Escritura','Characters','字體','字体'],
  lang:['Idioma','Language','語言','语言'],
  langZh:['Solo chino','Chinese only','純中文','纯中文'],
@@ -876,7 +877,7 @@ const UI={
  rateFast:['Rápida','Fast','快','快'],
  play:['Jugar','Play','開始','开始'],
  howto:['Desliza (o usa las flechas) para moverte.<br>Come el carácter correcto. Un error = −50 puntos.<br>Si un monstruo te toca pierdes una vida ♥.<br>Come 力 para poder comer monstruos.','Swipe (or use the arrow keys) to move.<br>Eat the correct character. A mistake = −50 points.<br>If a monster touches you, you lose a life ♥.<br>Eat 力 to be able to eat monsters.','滑動螢幕（或用方向鍵）移動。<br>吃掉正確的字，吃錯扣 50 分。<br>被怪物碰到會少一條命 ♥。<br>吃到「力」就能反過來吃怪物。','滑动屏幕（或用方向键）移动。<br>吃掉正确的字，吃错扣 50 分。<br>被怪物碰到会少一条命 ♥。<br>吃到「力」就能反过来吃怪物。'],
- listenOnlyNote:['En modo «Solo chino» se juega escuchando.','In “Chinese only” mode you play by listening.','純中文模式只能用「聽」來玩。','纯中文模式只能用「听」来玩。'],
+ listenOnlyNote:['En modo «Solo chino» solo se puede jugar en modo escucha.','In “Chinese only” mode you can only play in listening mode.','純中文模式只能用「聽力模式」來玩。','纯中文模式只能用「听力模式」来玩。'],
  best:['Mejor puntuación','Best score','最高分','最高分'],
  over:['Fin del juego','Game over','遊戲結束','游戏结束'],
  record:['¡Nuevo récord!','New record!','新紀錄！','新纪录！'],
@@ -1578,8 +1579,7 @@ function showMenu(){
     <div class="brand"><img class="logo" id="logo" alt=""><div><h1>${S.script==='simp'?'吃字小笼包':'吃字小籠包'}</h1><h2>Come Caracteres</h2></div></div>
     ${modeRow}
     <button class="main" id="go">${TH('play')}</button>
-    <div class="row2"><button class="sub" id="lb">🏆 ${TH('board')}</button><button class="sub" id="st">⚙ ${TH('settings')}</button></div>
-    <p>${THow()}</p>
+    <div class="row2"><button class="sub" id="lb">🏆 ${TH('board')}</button><button class="sub" id="st">⚙ ${TH('settings')}</button><button class="sub" id="hp">❓ ${TH('help')}</button></div>
     <p>${T('best')}: <b style="color:var(--ink)">${best}</b></p>
     <div class="copy">${esc(Tz('copy'))}</div>
   </div>`;
@@ -1592,10 +1592,21 @@ function showMenu(){
   });
   $('lb').onclick=()=>showBoard(showMenu);
   $('st').onclick=showSettings;
+  $('hp').onclick=showHelp;
   $('go').onclick=()=>{
     speechSynthesis&&speechSynthesis.getVoices&&speechSynthesis.getVoices();
     startGame();
   };
+}
+function showHelp(){
+  state='menu';
+  const o=$('ov');o.classList.add('show');
+  o.innerHTML=`<div class="card">
+    <h1>❓ ${TH('help')}</h1>
+    <p>${THow()}</p>
+    <button class="main" id="hpBack">${TH('back')}</button>
+  </div>`;
+  $('hpBack').onclick=showMenu;
 }
 function showSettings(){
   state='menu';
