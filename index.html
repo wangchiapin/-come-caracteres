@@ -912,6 +912,7 @@ const UI={
  board:['Ranking','Leaderboard','排行榜','排行榜'],
  nameLab:['Tu nombre','Your name','暱稱','暱称'],
  namePh:['Escribe tu nombre (máx. 14)','Enter your name (max 14)','輸入暱稱（最多 14 字）','输入暱称（最多 14 字）'],
+ nameIn:['Nombre','Name','暱稱','暱称'],
  submit:['Subir puntuación','Submit score','上傳分數','上传分数'],
  submitted:['✓ Subido al ranking','✓ Submitted to the leaderboard','✓ 已上傳到排行榜','✓ 已上传到排行榜'],
  submitFail:['No se pudo subir. Inténtalo de nuevo.','Could not submit. Please try again.','上傳失敗，請再試一次','上传失败，请再试一次'],
@@ -1173,7 +1174,7 @@ function newQuestion(){
   }
   const w=G.bag.pop();
   G.lastZh=w.zh;G.q=w;G.q.missed=false;
-  G.items=G.items.filter(i=>i.kind==='power');
+  G.items=G.items.filter(i=>i.kind==='power');G.wrong=0;
   addItem(w,'ok');
   for(let i=0;i<3;i++)addItem(pickDistractor(w),'bad');
   renderPrompt();
@@ -1218,7 +1219,7 @@ function eatItem(it){
     }
     updateHud();newQuestion();
   }else if(it.kind==='bad'){
-    G.combo=0;G.score=Math.max(0,G.score-50);G.flash=.35;
+    G.combo=0;G.score=Math.max(0,G.score-50);G.flash=.35;G.wrong=(G.wrong||0)+1;
     pop(it.x,it.y,'-50','#b5605a');sfx.bad();
     setFb(`✗ ${disp(it.w)}  ${reading(it.w)}`,'bad');
     if(!G.q.missed){
@@ -1401,13 +1402,14 @@ function drawItem(it){
   let alpha=1;
   if(power&&it.t<3)alpha=Math.sin(G.time*14)>0?1:.35;
   ctx.globalAlpha=alpha;
-  if(power){
-    const k=1+Math.sin(G.time*5+it.seed)*.06;
+  const hint=it.kind==='ok'&&G.wrong>=2;                         // 同一題吃錯兩次：正確字卡放大跳動提示
+  if(power||hint){
+    const k=power?1+Math.sin(G.time*5+it.seed)*.06:1.22+Math.sin(G.time*7)*.12;
     ctx.save();ctx.translate((it.x+.5)*cell,(it.y+.5)*cell);ctx.scale(k,k);ctx.translate(-(it.x+.5)*cell,-(it.y+.5)*cell);
   }
   rr(x,y,bw,bh,s*.22);
   ctx.fillStyle=power?'#f1c97a':'#fff3bf';ctx.fill();
-  ctx.strokeStyle=power?'#a8782a':'#b8a45a';ctx.lineWidth=power?2:1.2;ctx.stroke();
+  ctx.strokeStyle=power?'#a8782a':hint?'#6b8e6b':'#b8a45a';ctx.lineWidth=power?2:hint?2.6:1.2;ctx.stroke();
   ctx.fillStyle='#3b3935';ctx.textAlign='center';ctx.textBaseline='middle';
   const cx=bcx,cy=(it.y+.54)*cell;
   if(n<=2){
@@ -1419,7 +1421,7 @@ function drawItem(it){
     ctx.font=`${Math.floor(cell*.6)}px ${FONT}`;
     ctx.fillText(a[0]+a[1],cx,cy-cell*.3,bw-6);ctx.fillText(a.slice(2).join(''),cx,cy+cell*.3,bw-6);
   }
-  if(power)ctx.restore();
+  if(power||hint)ctx.restore();
   ctx.globalAlpha=1;
 }
 /* ================= 角色圖：向量圖（SVG）預先畫成小圖，遊戲中直接貼上 ================= */
@@ -1751,7 +1753,7 @@ function showOver(){
     <h2>${TH('over')}</h2>
     <div class="big">${G.score}</div>
     <p>${T('best')}: ${best}</p>${G.score>=best&&G.score>0?`<p style="color:var(--ink);margin:0">🎉 ${THi('record')}</p>`:''}
-    ${G.score>0?`<div class="lbsub"><input class="nm" id="nm" maxlength="14" placeholder="${esc(Tz('namePh'))}" value="${esc(getName())}"><button class="opt" id="sub">${TH('submit')}</button><div id="lbs" class="lbs"></div></div>`:''}
+    ${G.score>0?`<div class="lbsub"><div class="lab" style="text-align:center;margin:0 0 6px">${THi('namePh')}</div><input class="nm" id="nm" maxlength="14" placeholder="${esc(T('nameIn'))}" value="${esc(getName())}"><button class="opt" id="sub">${TH('submit')}</button><div id="lbs" class="lbs"></div></div>`:''}
     ${miss}
     <button class="main" id="again">${TH('again')}</button>
     <button class="sub" id="lb">🏆 ${TH('board')}</button>
@@ -1770,6 +1772,7 @@ function showOver(){
       if($('sub'))$('sub').disabled=false;
     };
     $('sub').onclick=send;
+    $('nm').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send();}});
     if(getName()&&!G.lbDone){G.lbDone=true;send();}   // 有存過暱稱就自動上傳
   }
 }
