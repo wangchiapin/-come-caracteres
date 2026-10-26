@@ -25,7 +25,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
 #fb.ok{color:var(--ok)} #fb.bad{color:var(--bad)}
 #stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;margin-top:8px}
 canvas{display:block;background:var(--paper);border-radius:8px}
-#ov{position:absolute;inset:0;background:rgba(245,242,234,.94);display:none;justify-content:center;padding:20px;z-index:5;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+#ov{position:absolute;inset:0;background:var(--bg);display:none;justify-content:center;padding:20px;z-index:5;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 #ov.show{display:flex}
 .card{width:100%;max-width:360px;text-align:center;margin:auto;padding-bottom:50px}
 .row2{display:flex;gap:8px}.row2 .sub{flex:1}
@@ -41,7 +41,9 @@ input.nm{font:inherit;font-size:15px;padding:9px;border:1px solid var(--line);bo
 .lbs{font-size:13px;color:var(--sub);min-height:18px;margin-top:6px}
 .copy{font-size:10px;color:rgba(120,120,120,.85);margin-top:8px;line-height:1.4}
 .brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px}
-.brand h1{margin:0}.brand h2{margin:2px 0 0}
+.card .brand h1{margin:0;font-size:38px}.card .brand h2{margin:2px 0 0;font-size:17px}
+#go{padding:8px;font-size:16px}
+@media (max-width:370px){.card .brand h1{font-size:30px}.logo{width:64px;height:64px}.row2 .sub{font-size:13px;padding:8px 2px}}
 .logo{width:78px;height:78px;flex:none;animation:bob 1.6s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 .card h1{margin:0 0 2px;font-size:30px;font-weight:600;letter-spacing:2px}
@@ -1680,6 +1682,19 @@ function showPause(){
   $('lb').onclick=()=>showBoard(showPause);
   $('menu').onclick=showMenu;
 }
+
+/* ---------- 電腦版：卡片放大到「剛好放得下、不用捲動」 ---------- */
+function fitCard(){
+  const o=$('ov'),c=o&&o.querySelector('.card');
+  if(!c)return;
+  c.style.zoom='';const ms=c.querySelector('.miss');if(ms)ms.style.maxHeight='';
+  if(!matchMedia('(min-width:900px) and (min-height:700px)').matches)return;
+  let z=1.45;c.style.zoom=z;
+  while(z>1&&o.scrollHeight>o.clientHeight+1){z=Math.round((z-.05)*100)/100;c.style.zoom=z;}
+  if(ms&&o.scrollHeight>o.clientHeight+1){const over=(o.scrollHeight-o.clientHeight)/z;ms.style.maxHeight=Math.max(90,ms.clientHeight-over)+'px';}
+}
+new MutationObserver(fitCard).observe($('ov'),{childList:true,subtree:true});
+window.addEventListener('resize',fitCard);
 
 /* ---------- 操作：鍵盤與滑動 ---------- */
 const KEYS={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1],a:[-1,0],d:[1,0],w:[0,-1],s:[0,1]};
