@@ -17,7 +17,8 @@ const TONE={'ā':['a',1],'á':['a',2],'ǎ':['a',3],'à':['a',4],'ē':['e',1],'é
 const MARK=['','','ˊ','ˇ','ˋ'];
 function split(py){
   const V='aeiouüāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ';
-  const re=new RegExp('(?:zh|ch|sh|[bpmfdtnlgkhjqxrzcsyw])?['+V+']+(?:ng|n(?![' + V + ']))?','g');
+  // er 要單獨成音節（ěrduǒ → ěr＋duǒ）；ng 後面接母音時，g 屬於下一個音節（dàngāo → dàn＋gāo）
+  const re=new RegExp('(?:[eēéěè]r(?![' + V + '])|(?:zh|ch|sh|[bpmfdtnlgkhjqxrzcsyw])?['+V+']+(?:ng(?![' + V + '])|n(?![' + V + ']))?)','g');
   return py.match(re)||[];
 }
 function syl2zy(s){
@@ -51,6 +52,7 @@ T.forEach(t=>t.words.forEach(w=>{
   if(seen.has(w[0]))return;seen.add(w[0]);
   if(FIX[w[0]])w[2]=FIX[w[0]];
   const z=zy(w[2]);if(/\?/.test(z))throw new Error('注音失敗 '+w[0]+' '+w[2]+' '+z);
+  { const n=split(w[2]).length; if(n!==[...w[0]].length) console.warn('⚠ 音節數與字數不同：'+w[0]+' '+w[2]+'（'+n+'／'+[...w[0]].length+'）'); }
   out.push({zh:w[0],sc:w[1],py:w[2],zy:z,es:w[3],en:w[4]});
 }));
 const body='/* BANK:START（由 tools/sync-bank.js 產生，請勿手改） */\nconst BANK=[\n'+
