@@ -43,6 +43,10 @@ Juego estilo Pac-Man: come el carácter correcto y esquiva a los monstruos.
 - 遊玩紀錄代號 `come_caracteres`，寫到 `memorma-24dab` 的 `plays`、`visits`。
 - 語音只選台灣中文，找不到時會提示。
 
+## 分享連結預覽（2026-10-28）
+
+`<head>` 有 Open Graph 標籤，根目錄的 `og.jpg`（1200x630）是貼到 LINE／WhatsApp 時顯示的縮圖；名稱來自 `og:title`「吃字小籠包 · Come Caracteres」。
+
 ## 手機瀏覽器備註：捲動後回不到頂端（2026-10-24）
 iPhone 版 Chrome 上，頁面可以捲動時，往下捲之後有時回不到最上面（Safari 正常）。
 本遊戲原本已設 `maximum-scale=1`（保留原有 viewport 設定），另補上 `html{color-scheme:light}`。新增頁面請兩項都有（見 game-kit README）。
