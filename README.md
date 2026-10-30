@@ -50,3 +50,12 @@ Juego estilo Pac-Man: come el carácter correcto y esquiva a los monstruos.
 ## 手機瀏覽器備註：捲動後回不到頂端（2026-10-24）
 iPhone 版 Chrome 上，頁面可以捲動時，往下捲之後有時回不到最上面（Safari 正常）。
 本遊戲原本已設 `maximum-scale=1`（保留原有 viewport 設定），另補上 `html{color-scheme:light}`。新增頁面請兩項都有（見 game-kit README）。
+
+## 測試
+
+`PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers python3 tests/test_game.py`（Python + Playwright；擋掉外部網路，用假的 Firebase 和假的語音，不碰真的資料庫）
+
+- 目前 92 項檢查（2026-10-30 建立）。
+- 涵蓋：60 個隨機迷宮（連通、無死路）、400 題都吃得到且干擾字公平、計分與升關、扣分、小怪與無敵、生命、結算上傳（保留較高分）、設定每個值、暫停與鍵盤。已知：成績上傳失敗後重試成功，畫面沒有提示。
+- 改了遊戲的計分、設定、排行榜或畫面文字後，推上去之前先跑一次。
+- 驗證方式：另外複製一份遊戲、故意改壞一個地方，測試會出現 FAIL。
