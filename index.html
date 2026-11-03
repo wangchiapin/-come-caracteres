@@ -35,6 +35,10 @@ canvas{display:block;background:var(--paper);border-radius:8px}
 @keyframes nmshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 input.nm.bad{border-color:var(--bad)!important;animation:nmshake .28s}
 input.nm.cp{font-size:16px;padding:6px 8px;background:#fdfbf5;border-color:#ddd6c4;border-radius:8px;margin:4px 0 0}
+/* 主頁：暱稱欄、開始鍵、文字模式按鈕 三個一樣高（56px） */
+#ov .card .row button.opt[data-set=mode],#ov .card input#nmMenu,#ov .card button#go{box-sizing:border-box;height:56px;padding-top:0;padding-bottom:0}
+#ov .card button#go{display:flex;flex-direction:column;align-items:center;justify-content:center}
+#ov .card .row button.opt[data-set=mode]{display:flex;flex-direction:column;align-items:center;justify-content:center}
 .row.sm button{padding:7px 4px;font-size:13px}
 .lbbox{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:6px 10px;min-height:60px;text-align:left}
 .lbrow{display:flex;gap:8px;padding:8px 4px;border-bottom:1px solid var(--line);font-size:16px;align-items:center}
