@@ -15,7 +15,9 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
   overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none}
 /* 手機：網頁固定成螢幕實際看得到的高度（dvh），不整頁捲動，避開 iPhone Chrome 上面被切掉。內容（首頁等）由 #ov 在裡面自己捲 */
 html,body{overflow:hidden}
-body{height:100vh;height:100dvh}
+body{height:100vh;height:100dvh;height:var(--appH,100dvh)}
+#pbtn{font:inherit;font-size:15px;line-height:1;width:34px;height:30px;padding:0;border:1px solid #c4b78f;background:#f4edd9;color:var(--ink);border-radius:9px;cursor:pointer;flex:none;touch-action:manipulation}
+#pbtn:active{background:#e9dfc6}
 #app{max-width:min(100vw,calc((var(--vh,100vh) - 140px)*15/19 + 16px),900px);height:100%;margin:0 auto;display:flex;flex-direction:column;padding:8px 8px calc(8px + env(safe-area-inset-bottom));position:relative}
 #hud{display:flex;justify-content:space-between;align-items:center;font-size:15px;padding:2px 4px 6px;color:var(--sub)}
 #hud b{color:var(--ink);font-size:18px;font-weight:600}
@@ -126,6 +128,7 @@ label.chk{display:flex;align-items:center;justify-content:center;gap:8px;font-si
     <span><span id="tScore">Puntos</span> <b id="score">0</b></span>
     <span id="lives"></span>
     <span><span id="tStage">Nivel</span> <b id="stagev">1</b></span>
+    <button id="pbtn" type="button" aria-label="Pausa">⏸</button>
   </div>
   <div id="prompt">
     <button id="speak" class="hide" aria-label="Escuchar">🔊</button>
@@ -1407,6 +1410,28 @@ function resize(){
   cv.style.width=cell*COLS+'px';cv.style.height=cell*ROWS+'px';
   cv.width=cell*COLS*dpr;cv.height=cell*ROWS*dpr;
 }
+/* iPhone Chrome 從「上一頁／下一頁」回來、或網址列縮放時，100dvh 會算錯（比實際看到的高），標題就被擠到上面切掉。
+   所以直接量 visualViewport（實際看得到的高度）設給 body（--appH），並在載入、回來、縮放、轉向時重算。
+   叫出鍵盤（輸入框有焦點）時不跟著縮，避免版面被擠扁。 */
+(function(){
+  const root=document.documentElement;
+  function fit(){
+    const a=document.activeElement;
+    if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA'))return;
+    const vv=window.visualViewport;
+    const h=Math.round((vv&&vv.height)||innerHeight);
+    if(h>0)root.style.setProperty('--appH',h+'px');
+    if(scrollY||root.scrollTop||document.body.scrollTop){window.scrollTo(0,0);root.scrollTop=0;document.body.scrollTop=0;}
+  }
+  window.__fitAppH=fit;
+  fit();
+  window.addEventListener('resize',fit);
+  window.addEventListener('orientationchange',()=>{setTimeout(fit,100);setTimeout(fit,400);});
+  window.addEventListener('pageshow',()=>{fit();setTimeout(fit,100);setTimeout(fit,400);setTimeout(fit,1000);});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){fit();setTimeout(fit,200);}});
+  if(window.visualViewport){visualViewport.addEventListener('resize',fit);}
+  setTimeout(fit,100);setTimeout(fit,500);setTimeout(fit,1500);
+})();
 /* 手機叫出鍵盤時，有些瀏覽器會把網頁高度縮得很小，遊戲外框寬度是用高度算的，就會被擠成一條窄窄的。
    所以另外記住「沒有鍵盤時的高度」(--vh)，寬度改用它算；只有螢幕寬度改變（轉向）或變高時才更新。 */
 (function(){
@@ -1934,6 +1959,7 @@ document.addEventListener('touchmove',e=>{
 },{passive:false});
 document.addEventListener('touchend',()=>{touching=false;});
 $('speak').onclick=()=>{if(G&&G.q)speak(G.q.zh);};
+$('pbtn').onclick=()=>{if(state==='play')showPause();};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='play')showPause();});
 
 /* ---------- 主迴圈 ---------- */
