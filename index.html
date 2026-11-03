@@ -13,6 +13,9 @@ html{color-scheme:light}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
   font-family:-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none}
+/* 手機：網頁固定成螢幕實際看得到的高度（dvh），不整頁捲動，避開 iPhone Chrome 上面被切掉。內容（首頁等）由 #ov 在裡面自己捲 */
+html,body{overflow:hidden}
+body{height:100vh;height:100dvh}
 #app{max-width:min(100vw,calc((var(--vh,100vh) - 140px)*15/19 + 16px),900px);height:100%;margin:0 auto;display:flex;flex-direction:column;padding:8px 8px calc(8px + env(safe-area-inset-bottom));position:relative}
 #hud{display:flex;justify-content:space-between;align-items:center;font-size:15px;padding:2px 4px 6px;color:var(--sub)}
 #hud b{color:var(--ink);font-size:18px;font-weight:600}
