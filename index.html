@@ -19,6 +19,10 @@ body{height:100vh;height:100dvh;height:var(--appH,100dvh)}
 #pbtn{font:inherit;font-size:15px;line-height:1;width:34px;height:30px;padding:0;border:1px solid #c4b78f;background:#f4edd9;color:var(--ink);border-radius:9px;cursor:pointer;flex:none;touch-action:manipulation}
 #pbtn:active{background:#e9dfc6}
 #app{max-width:min(100vw,calc((var(--vh,100vh) - 140px)*15/19 + 16px),900px);height:100%;margin:0 auto;display:flex;flex-direction:column;padding:8px 8px calc(8px + env(safe-area-inset-bottom));position:relative}
+#ttl{display:flex;align-items:center;justify-content:center;gap:8px;padding:2px 4px 6px;flex:none;pointer-events:none}
+#ttl img{width:34px;height:34px;flex:none}
+#ttl b{font-size:19px;font-weight:600;letter-spacing:1px;line-height:1.1}
+#ttl small{display:block;font-size:11px;color:var(--sub);letter-spacing:.3px;line-height:1.2}
 #hud{display:flex;justify-content:space-between;align-items:center;font-size:15px;padding:2px 4px 6px;color:var(--sub)}
 #hud b{color:var(--ink);font-size:18px;font-weight:600}
 #lives{letter-spacing:2px;color:var(--bad);font-size:18px}
@@ -124,6 +128,7 @@ label.chk{display:flex;align-items:center;justify-content:center;gap:8px;font-si
 </head>
 <body>
 <div id="app">
+  <div id="ttl"><img id="logo2" alt=""><div><b id="ttlZh">吃字小籠包</b><small>Come Caracteres</small></div></div>
   <div id="hud">
     <span><span id="tScore">Puntos</span> <b id="score">0</b></span>
     <span id="lives"></span>
@@ -989,6 +994,7 @@ function applyLang(){
   $('tScore').innerHTML=THi('score');$('tStage').innerHTML=THi('stage');
   $('speak').setAttribute('aria-label',T('listenAria'));
   document.title=(S.script==='simp'?'吃字小笼包':'吃字小籠包')+' · Come Caracteres';
+  $('ttlZh').textContent=S.script==='simp'?'吃字小笼包':'吃字小籠包';fillLogo();
 }
 let best=lsGet('cc_best',0);
 
@@ -1781,10 +1787,10 @@ function segRow(lab,id,opts,cur,small){
 }
 let _logo='';
 function fillLogo(n){                                 // 開始頁的小籠包（用遊戲裡同一張圖；圖還在畫的時候等一下再填）
-  const el=$('logo');if(!el)return;
+  const els=[$('logo'),$('logo2')].filter(Boolean);if(!els.length)return;
   try{if(!_logo&&SPR.frontO)_logo=SPR.frontO.n.toDataURL();}catch(e){}
-  if(_logo){el.src=_logo;el.style.visibility='visible';}
-  else if((n||0)<40){el.style.visibility='hidden';setTimeout(()=>fillLogo((n||0)+1),100);}
+  if(_logo){els.forEach(el=>{el.src=_logo;el.style.visibility='visible';});}
+  else if((n||0)<40){els.forEach(el=>{el.style.visibility='hidden';});setTimeout(()=>fillLogo((n||0)+1),100);}
 }
 /* 彩蛋：主頁連點小籠包 5 下 → 跳起來、噴蒸氣、說一句台灣常用語 */
 const EGG=[

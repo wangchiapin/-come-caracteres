@@ -241,6 +241,15 @@ with sync_playwright() as p:
     # 手機版 ⏸ 暫停鈕：遊戲中按 → 暫停；繼續／回主選單都可用；不在遊戲中時按了沒反應
     pg.evaluate("showMenu()"); pg.fill('#nmMenu','Ana'); pg.click('#go'); pg.wait_for_timeout(400)
     R.check(pg.evaluate("state") == 'play', '⏸ 測試前：已開始遊戲')
+    # 遊戲畫面最上面的標題列：小籠包圖示＋標題（繁／簡跟字體設定）
+    R.check(pg.is_visible('#ttl') and pg.evaluate("document.getElementById('logo2').src.startsWith('data:image')"), '遊戲畫面最上面有標題列與小籠包圖示')
+    R.check(pg.inner_text('#ttlZh') == '吃字小籠包', '標題列：繁體「吃字小籠包」')
+    pg.evaluate("S.script='simp';applyLang()")
+    R.check(pg.inner_text('#ttlZh') == '吃字小笼包', '標題列：簡體「吃字小笼包」')
+    pg.evaluate("S.script='trad';applyLang()")
+    R.check(pg.evaluate("(()=>{const a=document.getElementById('ttl').getBoundingClientRect(),h=document.getElementById('hud').getBoundingClientRect();return a.bottom<=h.top+1;})()"), '標題列在分數列上面（分數列與題目欄往下移）')
+    R.check(pg.evaluate("getComputedStyle(document.getElementById('ttl')).pointerEvents") == 'none', '標題列不擋觸控')
+    R.check(pg.evaluate("document.getElementById('cv').getBoundingClientRect().bottom <= innerHeight + 1"), '迷宮沒被擠出螢幕下緣')
     pg.click('#pbtn', force=True); pg.wait_for_timeout(200)
     R.check(pg.evaluate("state") == 'pause' and pg.is_visible('#resume'), '按 ⏸：暫停，出現「繼續」')
     pg.click('#resume'); pg.wait_for_timeout(200)
