@@ -923,7 +923,7 @@ const UI={
  modeTextEs:['Modo texto','Text mode','文字模式','文字模式'],
  modeTextEn:['Modo texto','Text mode','文字模式','文字模式'],
  modeListen:['Modo escucha','Listening mode','聽力模式 🔊','听力模式 🔊'],
- settings:['Ajustes','Settings','設定','设置'],
+ settings:['Ajustes','Settings','設定','设定'],
  help:['Cómo jugar','How to play','玩法說明','玩法说明'],
  script:['Escritura','Characters','字體','字体'],
  lang:['Idioma','Language','語言','语言'],
@@ -936,7 +936,7 @@ const UI={
  rateNormal:['Normal','Normal','中','中'],
  rateFast:['Rápida','Fast','快','快'],
  play:['Jugar','Play','開始','开始'],
- howto:['Desliza (o usa las flechas) para moverte.<br>Come el carácter correcto. Un error = −50 puntos.<br>Si un monstruo te toca pierdes una vida ♥.<br>Toma el té de perlas (珍珠奶茶) para poder comer monstruos.','Swipe (or use the arrow keys) to move.<br>Eat the correct character. A mistake = −50 points.<br>If a monster touches you, you lose a life ♥.<br>Drink the bubble tea (珍珠奶茶) to be able to eat monsters.','滑動螢幕（或用方向鍵）移動。<br>吃掉正確的字，吃錯扣 50 分。<br>被怪物碰到會少一條命 ♥。<br>喝到珍珠奶茶就能反過來吃怪物。','滑动屏幕（或用方向键）移动。<br>吃掉正确的字，吃错扣 50 分。<br>被怪物碰到会少一条命 ♥。<br>喝到珍珠奶茶就能反过来吃怪物。'],
+ howto:['Desliza (o usa las flechas) para moverte.<br>Come el carácter correcto. Un error = −50 puntos.<br>Si un monstruo te toca pierdes una vida ♥.<br>Toma el té de perlas (珍珠奶茶) para poder comer monstruos.','Swipe (or use the arrow keys) to move.<br>Eat the correct character. A mistake = −50 points.<br>If a monster touches you, you lose a life ♥.<br>Drink the bubble tea (珍珠奶茶) to be able to eat monsters.','滑動螢幕（或用方向鍵）移動。<br>吃掉正確的字，吃錯扣 50 分。<br>被怪物碰到會少一條命 ♥。<br>喝到珍珠奶茶就能反過來吃怪物。','滑动萤幕（或用方向键）移动。<br>吃掉正确的字，吃错扣 50 分。<br>被怪物碰到会少一条命 ♥。<br>喝到珍珠奶茶就能反过来吃怪物。'],
  listenOnlyNote:['En modo «Solo chino» solo se puede jugar en modo escucha.','In “Chinese only” mode you can only play in listening mode.','純中文模式只能用「聽力模式」來玩。','纯中文模式只能用「听力模式」来玩。'],
  best:['Mejor puntuación','Best score','最高分','最高分'],
  over:['Fin del juego','Game over','遊戲結束','游戏结束'],
@@ -944,8 +944,11 @@ const UI={
  review:['Para repasar','To review','要複習的字','要复习的字'],
  noMiss:['¡Sin errores de caracteres! 👏','No character mistakes! 👏','一個字都沒選錯！👏','一个字都没选错！👏'],
  again:['Jugar de nuevo','Play again','再玩一次','再玩一次'],
- menu:['Menú','Menu','選單','菜单'],
+ menu:['Menú','Menu','選單','选单'],
  pause:['Pausa','Paused','暫停','暂停'],
+ leaveWarn:['Si vuelves al menú, esta partida no cuenta para el puntaje.','If you go back to the menu, this game will not count toward your score.','回到主選單的話，這一局不會計分。','回到主选单的话，这一局不会计分。'],
+ leaveYes:['Ir al menú','Go to menu','回主選單','回主选单'],
+ keepPlaying:['Seguir jugando','Keep playing','繼續玩','继续玩'],
  resume:['Continuar','Resume','繼續','继续'],
  listenAria:['Escuchar','Listen','聽','听'],
  board:['Ranking','Leaderboard','排行榜','排行榜'],
@@ -1919,7 +1922,14 @@ function showPause(){
   o.innerHTML=`<div class="card"><h1>${TH('pause')}</h1><button class="main" id="resume">${TH('resume')}</button><div class="row2"><button class="sub" id="lb">🏆 ${TH('board')}</button><button class="sub" id="menu">🏠 ${TH('menu')}</button></div></div>`;
   $('resume').onclick=()=>{state='play';o.classList.remove('show');};
   $('lb').onclick=()=>showBoard(showPause);
-  $('menu').onclick=showMenu;
+  $('menu').onclick=showLeaveConfirm;
+}
+function showLeaveConfirm(){
+  state='pause';
+  const o=$('ov');o.classList.add('show');
+  o.innerHTML=`<div class="card"><h1>${TH('menu')}</h1><p style="font-size:15px;color:var(--ink);line-height:1.7">${TH('leaveWarn')}</p><button class="main" id="keep">${TH('keepPlaying')}</button><button class="sub" id="leave" style="border:1px solid #c4b78f;background:#f4edd9;color:var(--ink);border-radius:10px;padding:10px 4px">${TH('leaveYes')}</button></div>`;
+  $('keep').onclick=showPause;
+  $('leave').onclick=showMenu;
 }
 
 /* ---------- 電腦版：卡片放大到「剛好放得下、不用捲動」 ---------- */

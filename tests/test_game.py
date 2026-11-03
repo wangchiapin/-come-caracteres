@@ -236,8 +236,8 @@ with sync_playwright() as p:
     pg.click('#resume'); pg.wait_for_timeout(200)
     R.check(pg.evaluate("state") == 'play', '按繼續：回到遊戲')
     pg.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
-    pg.evaluate("showPause()"); pg.click('#menu'); pg.wait_for_timeout(200)
-    R.check(pg.evaluate("state") == 'menu' and pg.is_visible('#go'), '暫停 → 回主選單')
+    pg.evaluate("showPause()"); pg.click('#menu'); pg.wait_for_timeout(200); pg.click('#leave'); pg.wait_for_timeout(200)
+    R.check(pg.evaluate("state") == 'menu' and pg.is_visible('#go'), '暫停 → 選單 → 確認 → 回主選單')
     # 手機版 ⏸ 暫停鈕：遊戲中按 → 暫停；繼續／回主選單都可用；不在遊戲中時按了沒反應
     pg.evaluate("showMenu()"); pg.fill('#nmMenu','Ana'); pg.click('#go'); pg.wait_for_timeout(400)
     R.check(pg.evaluate("state") == 'play', '⏸ 測試前：已開始遊戲')
@@ -246,7 +246,21 @@ with sync_playwright() as p:
     pg.click('#resume'); pg.wait_for_timeout(200)
     R.check(pg.evaluate("state") == 'play', '⏸ 暫停後按繼續：回到遊戲')
     pg.click('#pbtn', force=True); pg.wait_for_timeout(200); pg.click('#menu'); pg.wait_for_timeout(200)
-    R.check(pg.evaluate("state") == 'menu' and pg.is_visible('#go'), '按 ⏸ → 回主選單')
+    R.check(pg.evaluate("state") == 'pause' and pg.is_visible('#leave') and pg.is_visible('#keep'), '按暫停卡的「選單」：先出現「不會計分」確認，不會直接離開')
+    R.check('不會計分' in pg.inner_text('#ov'), '確認卡有不計分警語（繁體）')
+    pg.click('#keep'); pg.wait_for_timeout(200)
+    R.check(pg.is_visible('#resume'), '確認卡按「繼續玩」：回到暫停卡')
+    pg.click('#menu'); pg.wait_for_timeout(200); pg.click('#leave'); pg.wait_for_timeout(200)
+    R.check(pg.evaluate("state") == 'menu' and pg.is_visible('#go'), '確認卡按「回主選單」→ 回主選單（⏸ 流程）')
+    # 警語跟著語言／字體設定
+    for sc, lg, must in [('simp','es','不会计分'), ('trad','es','Si vuelves al menú'), ('trad','en','will not count toward your score'), ('trad','zh','不會計分'), ('simp','zh','不会计分')]:
+        pg.evaluate("S.script=%r; S.lang=%r; showLeaveConfirm()" % (sc, lg)); pg.wait_for_timeout(100)
+        txt = pg.inner_text('#ov')
+        R.check(must in txt, '警語 %s／%s 顯示正確' % (sc, lg))
+        if lg == 'zh': R.check('Si vuelves' not in txt and 'will not' not in txt, '純中文時警語沒有外語')
+    R.check('选单' in pg.evaluate("S.script='simp';S.lang='es';Tz('menu')"), '簡體「選單」用台灣用字：选单')
+    R.check(pg.evaluate("Tz('settings')") == '设定', '簡體「設定」用台灣用字：设定')
+    pg.evaluate("S.script='trad';S.lang='es';showMenu()")
     # 網頁高度跟著「實際看得到的高度」，轉向／縮放後重算
     R.check(abs(pg.evaluate("document.body.getBoundingClientRect().height") - pg.evaluate("Math.round(visualViewport.height)")) <= 1, '網頁高度＝實際看得到的高度')
     pg.set_viewport_size({'width': 420, 'height': 640}); pg.wait_for_timeout(300)
