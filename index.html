@@ -1995,10 +1995,10 @@ applyLang();resize();showMenu();requestAnimationFrame(frame);
   function cfg(){ var s={}; try{ s=JSON.parse(localStorage.getItem('hanziGames.settings')||'{}')||{}; }catch(e){} return s; }
   function isMandarin(v){ var l=String((v&&v.lang)||'').toLowerCase().replace(/_/g,'-'); if(l.indexOf('yue')===0||l.indexOf('zh-hk')===0) return false; return l==='zh'||l.indexOf('zh-')===0||l.indexOf('cmn')===0; }
   var T={
-    none:{ zh:['這個裝置找不到中文（台灣）語音，聽不到念的內容。請到手機設定安裝「中文（台灣）」語音，或換一個裝置。','这个装置找不到中文（台湾）语音，听不到念的内容。请到手机设置安装「中文（台湾）」语音，或换一个装置。'],
+    none:{ zh:['這個裝置找不到中文（台灣）語音，聽不到念的內容。請到手機設定安裝「中文（台灣）」語音，或換一個裝置。','这个装置找不到中文（台湾）语音，听不到念的内容。请到手机设定安装「中文（台湾）」语音，或换一个装置。'],
            es:'No se encontró una voz de chino (Taiwán) en este dispositivo, así que no se oirá el audio. Instala la voz «chino (Taiwán)» en los ajustes del móvil o usa otro dispositivo.',
            en:'No Chinese (Taiwan) voice was found on this device, so you won’t hear the audio. Install the “Chinese (Taiwan)” voice in your phone settings, or use another device.' },
-    nosynth:{ zh:['這個瀏覽器不支援語音，聽不到念的內容。請換一個瀏覽器（例如 Chrome、Safari）。','这个浏览器不支持语音，听不到念的内容。请换一个浏览器（例如 Chrome、Safari）。'],
+    nosynth:{ zh:['這個瀏覽器不支援語音，聽不到念的內容。請換一個瀏覽器（例如 Chrome、Safari）。','这个浏览器不支援语音，听不到念的内容。请换一个浏览器（例如 Chrome、Safari）。'],
            es:'Este navegador no admite voz, así que no se oirá el audio. Usa otro navegador (por ejemplo Chrome o Safari).',
            en:'This browser does not support speech, so you won’t hear the audio. Try another browser (for example Chrome or Safari).' }
   };
