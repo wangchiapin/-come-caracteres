@@ -1888,7 +1888,7 @@ function showOver(){
     :`<p>${T('noMiss')}</p>`;
   const has=!!getName();                       // 主頁已輸入暱稱 → 結束自動上傳，不需要輸入框和按鈕
   const lbBlock=G.score<=0?'':has
-    ?`<div class="lbsub"><div id="lbs" class="lbs">${G.lbOk?esc(T('submitted')):''}</div><button class="opt" id="sub" style="display:none;width:100%">${TH('submit')}</button></div>`
+    ?`<div class="lbsub"><div id="lbs" class="lbs">${G.lbOk?esc(T('submitted')):(G.lbDone?esc(T('submitFail')):'')}</div><button class="opt" id="sub" style="display:${G.lbDone&&!G.lbOk?'':'none'};width:100%">${TH('submit')}</button></div>`
     :`<div class="lbsub"><div class="lab" style="text-align:center;margin:0 0 6px">${THi('namePh')}</div><input class="nm" id="nm" maxlength="14" placeholder="${esc(T('nameIn'))}" value=""><button class="opt" id="sub">${TH('submit')}</button><div id="lbs" class="lbs"></div></div>`;
   o.innerHTML=`<div class="card">
     <h2>${TH('over')}</h2>

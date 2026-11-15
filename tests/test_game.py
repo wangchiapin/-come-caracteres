@@ -162,6 +162,8 @@ with sync_playwright() as p:
     b, pg, errs = page(p)
     begin(pg); over(pg, 600)
     R.check(pg.is_visible('#sub'), '上傳失敗：出現「重新上傳」鈕')
+    pg.click('#lb'); pg.wait_for_timeout(500); pg.click('#lbBack'); pg.wait_for_timeout(300)
+    R.check(pg.is_visible('#sub') and pg.inner_text('#lbs').strip() != '', '失敗後看過排行榜再回來：「重新上傳」鈕和失敗提示還在')
     common.BLOCK_FB = False
     pg.click('#sub'); pg.wait_for_timeout(1500)
     # 注意：Chrome 對「第一次載入失敗的 import()」會記住失敗結果、同一個網頁不會再試（已用空白頁對照確認是瀏覽器行為）。
