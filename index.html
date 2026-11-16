@@ -87,6 +87,7 @@ input.nm{font:inherit;font-size:16px;padding:9px;border:1px solid var(--line);bo
 button.opt,button.main{font:inherit;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 6px;cursor:pointer;font-size:14px}
 button.opt.on{background:#e9dfc6;color:var(--ink);border:1.6px solid #8a7a5c;font-weight:600}   /* 選中＝竹色＋褐色框；深色留給「開始」 */
 button.main{width:100%;background:var(--ink);color:#fff;border-color:var(--ink);font-size:17px;padding:13px;margin-top:10px}
+button.share{width:100%;margin-top:8px;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:10px;font:inherit;font-size:15px;padding:9px 6px;cursor:pointer}
 button.sub{width:100%;margin-top:8px;background:transparent;color:var(--sub);border:none;font:inherit;font-size:14px;padding:8px;cursor:pointer}
 label.chk{display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--sub);margin:10px 0}
 .lab{font-size:12px;color:var(--sub);text-align:left;margin-top:10px}
@@ -968,6 +969,9 @@ const UI={
  loading:['Cargando…','Loading…','讀取中…','读取中…'],
  boardFail:['No se pudo cargar el ranking.','Could not load the leaderboard.','排行榜讀取失敗','排行榜读取失败'],
  boardEmpty:['Aún no hay puntuaciones.','No scores yet.','還沒有人上榜','还没有人上榜'],
+ share:['Compartir resultado','Share result','分享成績','分享成绩'],
+ shareCopied:['Copiado, ¡pégalo a un amigo!','Copied — paste it to a friend!','已複製，可以貼給朋友','已复制，可以贴给朋友'],
+ shareFail:['No se pudo copiar','Could not copy','複製失敗','复制失败'],
  back:['Volver','Back','返回','返回'],
  you:['(tú)','(you)','（你）','（你）'],
  copy:['© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有權利 / Todos los derechos reservados','© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有權利 / Todos los derechos reservados','© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有權利 / Todos los derechos reservados','© 2026 @cadadiaunosminutos_ben_chino ｜ 保留所有权利 / Todos los derechos reservados'],
@@ -1881,6 +1885,49 @@ function showSettings(){
   o.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{S[b.dataset.set]=b.dataset.v;writeSettings(S);applyLang();showSettings();});
   $('stBack').onclick=showMenu;
 }
+/* ---------- 分享成績（統一規則見 game-kit parts/share.js：結算畫面「再玩一次」之後、「主選單」之前；0 分不顯示）---------- */
+/* SHARE-BEGIN（HGShare：來自 game-kit parts/share.js） */
+const HGShare = (() => {
+  async function copyText(s) {
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(s); return true; } } catch (e) {}
+    try {
+      const ta = document.createElement('textarea'); ta.value = s; ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+      document.body.appendChild(ta); ta.select();
+      const r = document.execCommand('copy'); ta.remove(); return !!r;
+    } catch (e) { return false; }
+  }
+  async function send({ title, text, url }) {
+    if (navigator.share) {
+      try { await navigator.share({ title, text, url }); return 'shared'; }
+      catch (e) { if (e && e.name === 'AbortError') return 'aborted'; }   // 其他錯誤改走複製
+    }
+    return (await copyText(text + '\n' + url)) ? 'copied' : 'failed';
+  }
+  return { copyText, send };
+})();
+/* SHARE-END */
+const SHARE_URL='https://wangchiapin.github.io/-come-caracteres/?ref=share';   // 公開頁＋分享記號；不帶其他參數
+function shareMessage(score){   // 一句話：依語言設定；有暱稱才帶暱稱
+  const nm=getName(),simp=S.script==='simp';
+  if(S.lang==='es')return (nm?nm+' sacó ':'¡Saqué ')+score+' puntos en Come Caracteres (吃字小籠包)! ¿Puedes superarme?';
+  if(S.lang==='en')return (nm?nm+' scored ':'I scored ')+score+' in Come Caracteres (吃字小籠包)! Can you beat me?';
+  return simp?(nm?nm+'在':'我在')+'「吃字小笼包」拿了 '+score+' 分，你能超越我吗？'
+             :(nm?nm+'在':'我在')+'「吃字小籠包」拿了 '+score+' 分，你能超越我嗎？';
+}
+let shareBusy=false,shareTimer=0;
+async function doShare(score){
+  if(shareBusy)return;shareBusy=true;
+  try{
+    const r=await HGShare.send({title:(S.script==='simp'?'吃字小笼包':'吃字小籠包')+' · Come Caracteres',text:shareMessage(score),url:SHARE_URL});
+    if(r==='copied'||r==='failed'){
+      const b=$('shareBtn');if(!b)return;
+      b.innerHTML=TH(r==='copied'?'shareCopied':'shareFail');
+      clearTimeout(shareTimer);
+      shareTimer=setTimeout(()=>{const b2=$('shareBtn');if(b2)b2.innerHTML=TH('share');},2200);
+    }
+  }finally{shareBusy=false;}
+}
 function showOver(){
   const o=$('ov');o.classList.add('show');
   const miss=G.mistakes.length
@@ -1897,9 +1944,11 @@ function showOver(){
     ${lbBlock}
     ${miss}
     <button class="main" id="again">${TH('again')}</button>
+    ${G.score>0?`<button class="share" id="shareBtn">${TH('share')}</button>`:''}
     <div class="row2"><button class="sub" id="lb">🏆 ${TH('board')}</button><button class="sub" id="menu">🏠 ${TH('menu')}</button></div>
   </div>`;
   $('again').onclick=startGame;
+  if($('shareBtn'))$('shareBtn').onclick=()=>doShare(G.score);
   $('lb').onclick=()=>showBoard(showOver);
   $('menu').onclick=showMenu;
   if(G.score>0){
@@ -2099,6 +2148,18 @@ applyLang();resize();showMenu();requestAnimationFrame(frame);
     try { return String(Intl.DateTimeFormat().resolvedOptions().timeZone || '').slice(0, 64); } catch (e) { return ''; }
   }
   var TZ = tzName();
+  /* ref：這個訪客是從哪裡進來的記號（例如 ?ref=share＝朋友分享的連結）。
+     只收英數字、底線、連字號，最長 16 字，統一小寫；其他一律忽略（規則也限制 1～16 字串）。
+     網址有 ?ref= 就記下並暫存在這個分頁（sessionStorage，同分頁的 iframe 讀得到、分頁關掉就消失）；
+     沒有就讀暫存。所以「首頁收到記號、遊戲頁（iframe）才寫紀錄」也記得到。 */
+  function cleanRef(x) { x = String(x == null ? '' : x).trim().toLowerCase(); return /^[a-z0-9_-]{1,16}$/.test(x) ? x : ''; }
+  function refName() {
+    var r = '';
+    try { r = cleanRef(new URLSearchParams(location.search).get('ref')); } catch (e) {}
+    try { if (r) sessionStorage.setItem('hg.ref', r); else r = cleanRef(sessionStorage.getItem('hg.ref')); } catch (e) {}
+    return r;
+  }
+  var REF = refName();
 
   function gid() { try { return (HG.gameFn ? HG.gameFn() : GAME) || GAME; } catch (e) { return GAME; } } // taiwan-life 這類共用引擎的遊戲可改寫 HGPlays.gameFn
   function day() { // 以台灣時間（UTC+8）算「哪一天」，方便老師對帳
@@ -2140,6 +2201,7 @@ applyLang();resize();showMenu();requestAnimationFrame(frame);
         var id = d + '_' + g + '_' + L.uid;
         var v = { game: g, day: d, uid: L.uid, at: L.F.serverTimestamp() };
         if (TZ) v.tz = TZ;
+        if (REF) v.ref = REF;
         return L.F.setDoc(L.F.doc(L.db, 'visits', id), v)
           .then(function () { ls(key, d); });
       }).catch(function () {});
@@ -2152,6 +2214,7 @@ applyLang();resize();showMenu();requestAnimationFrame(frame);
         var data = { game: gid(), level: mine.level, uid: L.uid, name: getName(name), day: day(),
                      startedAt: L.F.serverTimestamp(), done: false };
         if (TZ) data.tz = TZ;
+        if (REF) data.ref = REF;
         return L.F.addDoc(L.F.collection(L.db, 'plays'), data).then(function (ref) {
           mine.id = ref.id; if (mine.pendingEnd) HG._finish(mine, mine.pendingEnd);
         });
