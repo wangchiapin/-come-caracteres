@@ -1361,10 +1361,11 @@ async function fetchTop(){
   const v={rows:rows.slice(0,10),uid:L.uid};topCache={t:Date.now(),v};
   return v;
 }
-function showBoard(back){
+function showBoard(back,shareScore){   // shareScore：從結算畫面進來時帶本局分數，排行榜畫面也放分享鈕（自動跳排行榜後才按得到）
   const o=$('ov');o.classList.add('show');
-  o.innerHTML=`<div class="card"><h1>🏆 ${TH('board')}</h1><div id="lbBody" class="lbbox"><p>${T('loading')}</p></div><button class="sub" id="lbBack">${TH('back')}</button></div>`;
+  o.innerHTML=`<div class="card"><h1>🏆 ${TH('board')}</h1><div id="lbBody" class="lbbox"><p>${T('loading')}</p></div>${shareScore>0?`<button class="share" id="shareBtn">${TH('share')}</button>`:''}<button class="sub" id="lbBack">${TH('back')}</button></div>`;
   $('lbBack').onclick=back;
+  if(shareScore>0)$('shareBtn').onclick=()=>doShare(shareScore);
   fetchTop().then(({rows,uid})=>{
     const el=$('lbBody');if(!el)return;
     el.innerHTML=rows.length?rows.map((r,i)=>`<div class="lbrow${r.id===uid?' me':''}"><span class="r">${i+1}</span><span class="n">${esc(r.name||'')}${r.id===uid?' '+Tz('you'):''}</span><span class="s">${r.score|0}</span></div>`).join(''):`<p>${T('boardEmpty')}</p>`;
@@ -1949,7 +1950,7 @@ function showOver(){
   </div>`;
   $('again').onclick=startGame;
   if($('shareBtn'))$('shareBtn').onclick=()=>doShare(G.score);
-  $('lb').onclick=()=>showBoard(showOver);
+  $('lb').onclick=()=>showBoard(showOver,G.score);
   $('menu').onclick=showMenu;
   if(G.score>0){
     const send=async()=>{
@@ -1959,7 +1960,7 @@ function showOver(){
       if($('sub')){$('sub').disabled=true;if(has)$('sub').style.display='none';}
       try{
         await submitScore(nm,G.score);G.lbOk=true;
-        if($('lbs')){$('lbs').textContent=T('submitted');setTimeout(()=>{if($('lbs')&&state==='over')showBoard(showOver);},900);}   // 上傳成功 → 直接顯示排行榜
+        if($('lbs')){$('lbs').textContent=T('submitted');setTimeout(()=>{if($('lbs')&&state==='over')showBoard(showOver,G.score);},900);}   // 上傳成功 → 直接顯示排行榜
       }catch(e){
         if($('lbs'))$('lbs').textContent=T('submitFail');
         if($('sub'))$('sub').style.display='';                       // 失敗才出現「重新上傳」按鈕
